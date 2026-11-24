@@ -2,322 +2,52 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Network Intrusion Detection System (NIDS) | SVM Machine Learning</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <meta http-equiv="refresh" content="0; url=https://network-intrusion-detection-system-ml.onrender.com/">
+    <title>NIDS Security Operations Center</title>
+    <script>
+        // Immediately forward to live Render app
+        window.location.replace("https://network-intrusion-detection-system-ml.onrender.com/");
+    </script>
     <style>
-        :root {
-            --bg-dark: #0a0e17;
-            --card-bg: #111827;
-            --card-border: #1f293d;
-            --accent-cyan: #00e5ff;
-            --accent-green: #10b981;
-            --accent-red: #ef4444;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-        }
-
-        * {
+        html, body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0b0f19;
+            color: #00e5ff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            line-height: 1.6;
-            overflow-x: hidden;
+        iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        /* Hero Section */
-        header {
-            padding: 60px 0 40px;
-            text-align: center;
-            background: radial-gradient(circle at 50% 20%, rgba(0, 229, 255, 0.12) 0%, transparent 60%);
-            border-bottom: 1px solid var(--card-border);
-        }
-
-        .badge {
-            display: inline-block;
-            background: rgba(0, 229, 255, 0.1);
-            color: var(--accent-cyan);
-            border: 1px solid rgba(0, 229, 255, 0.3);
-            padding: 6px 16px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            font-size: 2.8rem;
-            font-weight: 800;
-            margin-bottom: 16px;
-            background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        p.lead {
-            font-size: 1.15rem;
-            color: var(--text-muted);
-            max-width: 780px;
-            margin: 0 auto 32px;
-        }
-
-        .btn-group {
+        .fallback {
             display: flex;
-            gap: 16px;
+            flex-direction: column;
             justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            display: inline-flex;
             align-items: center;
-            gap: 10px;
-            padding: 14px 28px;
-            border-radius: 8px;
-            font-size: 1rem;
+            height: 100vh;
+            text-align: center;
+        }
+        a {
+            color: #00e5ff;
             font-weight: 700;
             text-decoration: none;
-            transition: all 0.2s ease;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
-            color: #ffffff;
-            box-shadow: 0 4px 20px rgba(0, 180, 219, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(0, 180, 219, 0.5);
-        }
-
-        .btn-secondary {
-            background: var(--card-bg);
-            color: var(--text-main);
-            border: 1px solid var(--card-border);
-        }
-
-        .btn-secondary:hover {
-            border-color: var(--accent-cyan);
-            color: var(--accent-cyan);
-        }
-
-        /* Metrics Grid */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-            margin: 40px 0;
-        }
-
-        .metric-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-        }
-
-        .metric-val {
-            font-size: 2.4rem;
-            font-weight: 800;
-            color: var(--accent-cyan);
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .metric-label {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-top: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        /* Features Section */
-        .section-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin: 50px 0 24px;
-            text-align: center;
-        }
-
-        .grid-3 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 24px;
-            margin-bottom: 50px;
-        }
-
-        .feature-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 28px;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(0, 229, 255, 0.4);
-        }
-
-        .feature-card h3 {
-            font-size: 1.25rem;
-            margin-bottom: 12px;
-            color: #ffffff;
-        }
-
-        .feature-card p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        /* Attack Badges */
-        .attacks-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            margin: 20px 0 50px;
-        }
-
-        .attack-pill {
-            background: #1e293b;
-            color: #e2e8f0;
-            border: 1px solid #334155;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.88rem;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .attack-pill.benign {
-            border-color: var(--accent-green);
-            color: #34d399;
-        }
-
-        .attack-pill.threat {
-            border-color: rgba(239, 68, 68, 0.4);
-            color: #f87171;
-        }
-
-        /* Footer */
-        footer {
-            border-top: 1px solid var(--card-border);
-            padding: 40px 0;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-
-    <header>
-        <div class="container">
-            <span class="badge">Cybersecurity & Machine Learning</span>
-            <h1>Network Intrusion Detection System (NIDS)</h1>
-            <p class="lead">
-                A high-precision multiclass Cyber Threat Detection Engine powered by <strong>Support Vector Machine (RBF Kernel)</strong>, 
-                <strong>FastAPI</strong>, and <strong>Streamlit SOC Dashboard</strong> on the Canadian Institute for Cybersecurity <strong>CIC-IDS2017</strong> dataset.
-            </p>
-            <div class="btn-group">
-                <a href="https://network-intrusion-detection-system-ml.onrender.com" target="_blank" class="btn btn-primary">
-                    ⚡ Launch Live SOC Dashboard (Render)
-                </a>
-                <a href="https://github.com/THARUN-RK/Network-intrusion-detection-system-ML" target="_blank" class="btn btn-secondary">
-                    📂 View Source on GitHub
-                </a>
-            </div>
-        </div>
-    </header>
-
-    <main class="container">
-        <!-- Verified Metrics -->
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <div class="metric-val">98.50%</div>
-                <div class="metric-label">Overall Accuracy</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-val">97.70%</div>
-                <div class="metric-label">Macro F1-Score</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-val">0.061 ms</div>
-                <div class="metric-label">Latency / Flow</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-val">71</div>
-                <div class="metric-label">Flow Features Evaluated</div>
-            </div>
-        </div>
-
-        <!-- 10 Attack Taxonomy -->
-        <h2 class="section-title">Classified Threat Taxonomy</h2>
-        <div class="attacks-list">
-            <span class="attack-pill benign">✓ BENIGN</span>
-            <span class="attack-pill threat">🚨 DoS (Hulk/GoldenEye/Slowloris)</span>
-            <span class="attack-pill threat">🚨 DDoS</span>
-            <span class="attack-pill threat">🚨 PortScan</span>
-            <span class="attack-pill threat">🚨 Botnet (C2)</span>
-            <span class="attack-pill threat">🚨 FTP-Patator</span>
-            <span class="attack-pill threat">🚨 SSH-Patator</span>
-            <span class="attack-pill threat">🚨 Web Attack (SQLi/XSS)</span>
-            <span class="attack-pill threat">🚨 Infiltration</span>
-            <span class="attack-pill threat">🚨 Heartbleed</span>
-        </div>
-
-        <!-- Architecture Pillars -->
-        <h2 class="section-title">System Architecture</h2>
-        <div class="grid-3">
-            <div class="feature-card">
-                <h3>🧠 Multiclass SVM (RBF Kernel)</h3>
-                <p>Trained with class-balanced sample weights and 3-fold stratified cross-validation. Non-linear decision surfaces generalize against polymorphic and zero-day attacks.</p>
-            </div>
-            <div class="feature-card">
-                <h3>⚡ FastAPI REST Microservice</h3>
-                <p>High-throughput asynchronous API endpoints for real-time single flow triage and high-volume CSV batch prediction with Pydantic validation.</p>
-            </div>
-            <div class="feature-card">
-                <h3>🛡️ Streamlit SOC Dashboard</h3>
-                <p>Dark cybersecurity operations center dashboard featuring live threat feeds, interactive Plotly distribution charts, and downloadable incident reports.</p>
-            </div>
-            <div class="feature-card">
-                <h3>🔍 Leakage-Free Preprocessing</h3>
-                <p>Eliminates topological identifiers (IP addresses, Port IDs, Flow IDs, Timestamps) to prevent artificial model overfitting and ensure authentic field generalization.</p>
-            </div>
-            <div class="feature-card">
-                <h3>📜 SQLite Security Audit Log</h3>
-                <p>Parameterized historical database recording prediction timestamps, confidence ratings, and automated security incident alerts.</p>
-            </div>
-            <div class="feature-card">
-                <h3>📡 Scapy Live Flow Capture</h3>
-                <p>Real-time packet capture extension that tracks bidirectional TCP/UDP streams and transforms raw packets into the exact 71-feature model schema.</p>
-            </div>
-        </div>
-    </main>
-
-    <footer>
-        <div class="container">
-            <p><strong>Network Intrusion Detection System (NIDS)</strong> — Major Computer Science Engineering Machine Learning Project</p>
-            <p style="margin-top: 8px;">Developed by <a href="https://github.com/THARUN-RK" style="color: var(--accent-cyan); text-decoration: none;">THARUN-RK</a> | MIT License</p>
-        </div>
-    </footer>
-
+    <iframe src="https://network-intrusion-detection-system-ml.onrender.com/" allow="fullscreen"></iframe>
+    <div class="fallback">
+        <h2>🛡️ Connecting to NIDS Security Operations Center...</h2>
+        <p>If not redirected automatically, <a href="https://network-intrusion-detection-system-ml.onrender.com/">click here to launch</a></p>
+    </div>
 </body>
 </html>
