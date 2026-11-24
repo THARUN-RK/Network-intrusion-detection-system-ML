@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  nids-backend:
+    build: .
+    container_name: nids_fastapi_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - ./logs:/app/logs
+      - ./models:/app/models
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  nids-dashboard:
+    build: .
+    container_name: nids_streamlit_dashboard
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    command: streamlit run frontend/dashboard.py --server.port=8501 --server.address=0.0.0.0
+    depends_on:
+      - nids-backend
+    environment:
+      - NIDS_API_URL=http://nids-backend:8000
