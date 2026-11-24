@@ -6,8 +6,8 @@
         "classifier__gamma": "scale"
     },
     "cv_folds": 3,
-    "cv_macro_f1": 0.9656623002950061,
-    "training_duration_seconds": 9.42,
+    "cv_macro_f1": 0.9736936822734134,
+    "training_duration_seconds": 13.96,
     "feature_count": 71,
     "feature_names": [
         "Destination Port",
@@ -94,5 +94,5 @@
         "SSH-Patator",
         "Web Attack"
     ],
-    "training_samples_count": 4800
+    "training_samples_count": 6400
 }

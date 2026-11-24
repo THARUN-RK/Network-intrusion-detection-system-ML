@@ -22,9 +22,9 @@ MODEL_PATH = MODELS_DIR / "svm_model.pkl"
 METADATA_PATH = MODELS_DIR / "model_metadata.json"
 
 # API & Server Configuration
-API_HOST = "127.0.0.1"
-API_PORT = 8000
-API_URL = f"http://{API_HOST}:{API_PORT}"
+API_HOST = os.getenv("API_HOST", "0.0.0.0")
+API_PORT = int(os.getenv("PORT", os.getenv("API_PORT", "8000")))
+API_URL = os.getenv("NIDS_API_URL", f"http://127.0.0.1:{API_PORT}")
 
 # Hardware Optimization (8GB RAM, i3 6-core)
 # SVM computational complexity scales with O(N^2) to O(N^3) with sample size N.

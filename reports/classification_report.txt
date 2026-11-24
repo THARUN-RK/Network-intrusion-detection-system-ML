@@ -1,24 +1,24 @@
 === NETWORK INTRUSION DETECTION SYSTEM (NIDS) - SVM EVALUATION REPORT ===
 
-Total Test Records: 1,200
-Overall Accuracy:   98.50%
-Macro F1-Score:     97.70%
-Weighted F1-Score:  98.55%
-Prediction Latency: 0.061 ms / flow
+Total Test Records: 2,000
+Overall Accuracy:   98.35%
+Macro F1-Score:     97.50%
+Weighted F1-Score:  98.38%
+Prediction Latency: 0.082 ms / flow
 
               precision    recall  f1-score   support
 
-      BENIGN       1.00      0.97      0.98       600
-         Bot       0.91      1.00      0.95        48
-        DDoS       1.00      1.00      1.00       144
-         DoS       1.00      1.00      1.00       144
- FTP-Patator       0.92      1.00      0.96        36
-  Heartbleed       1.00      1.00      1.00        12
-Infiltration       1.00      1.00      1.00        24
-    PortScan       1.00      1.00      1.00       120
- SSH-Patator       1.00      1.00      1.00        36
-  Web Attack       0.80      0.97      0.88        36
+      BENIGN       1.00      0.97      0.98      1013
+         Bot       0.85      1.00      0.92        93
+        DDoS       1.00      1.00      1.00       223
+         DoS       1.00      1.00      1.00       244
+ FTP-Patator       0.92      1.00      0.96        59
+  Heartbleed       1.00      1.00      1.00        20
+Infiltration       1.00      1.00      1.00        36
+    PortScan       1.00      1.00      1.00       194
+ SSH-Patator       0.98      0.98      0.98        57
+  Web Attack       0.89      0.92      0.90        61
 
-    accuracy                           0.98      1200
-   macro avg       0.96      0.99      0.98      1200
-weighted avg       0.99      0.98      0.99      1200
+    accuracy                           0.98      2000
+   macro avg       0.96      0.99      0.98      2000
+weighted avg       0.98      0.98      0.98      2000

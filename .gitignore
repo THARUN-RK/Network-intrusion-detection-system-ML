@@ -18,15 +18,16 @@ dataset/processed/*.csv
 !dataset/raw/.gitkeep
 !dataset/processed/.gitkeep
 
-# Machine Learning Trained Artifacts (too large for git)
-models/*.pkl
+# Machine Learning Trained Artifacts (track compressed svm_model.pkl, ignore huge external weights)
 models/*.joblib
+!models/svm_model.pkl
+!models/model_metadata.json
 !models/.gitkeep
 
-# Generated Reports and Images
-reports/*.png
-reports/*.html
-reports/*.json
+# Generated Reports and Images (track evaluation reports for portfolio & deployment)
+!reports/*.png
+!reports/*.json
+!reports/*.txt
 !reports/.gitkeep
 
 # Databases & Logs
