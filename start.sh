@@ -6,6 +6,9 @@ set -e
 
 echo "=== Initializing Network Intrusion Detection System ==="
 
+# Set PYTHONPATH to project root so all submodules resolve cleanly
+export PYTHONPATH=".:${PYTHONPATH}"
+
 # Initialize database schema and verify trained model
 python -c "import database; database.init_db()"
 

@@ -5,14 +5,21 @@ Communicates with the FastAPI Backend via HTTP requests.
 """
 
 import os
+import sys
 import json
+from pathlib import Path
+
+# Add project root to sys.path so modules (database, config, predict) resolve reliably across cloud runtimes
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 import requests
 import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-from pathlib import Path
 
 # Configure Streamlit Page
 st.set_page_config(
