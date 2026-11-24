@@ -1,0 +1,49 @@
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints/
+
+# Raw and Processed Datasets (keep sample templates, ignore large CSVs)
+dataset/raw/*.csv
+dataset/processed/*.csv
+!dataset/raw/.gitkeep
+!dataset/processed/.gitkeep
+
+# Machine Learning Trained Artifacts (too large for git)
+models/*.pkl
+models/*.joblib
+!models/.gitkeep
+
+# Generated Reports and Images
+reports/*.png
+reports/*.html
+reports/*.json
+!reports/.gitkeep
+
+# Databases & Logs
+*.db
+*.sqlite
+*.sqlite3
+logs/*.log
+logs/*.db
+!logs/.gitkeep
+
+# Environment & IDE
+.env
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Generated
+.DS_Store
+Thumbs.db
