@@ -14,6 +14,10 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+import config
+import database
+import predict
+
 import requests
 import pandas as pd
 import numpy as np
@@ -157,7 +161,6 @@ if page == "Security Overview":
     stats = fetch_api("/analytics/overview")
     if not stats:
         # Fallback to direct database query if backend is stopped
-        import database
         stats = database.get_overview_statistics()
         
     col1, col2, col3, col4 = st.columns(4)
@@ -200,7 +203,6 @@ if page == "Security Overview":
         display_cols = ["id", "timestamp", "alert_level", "attack_type", "confidence", "description"]
         st.dataframe(df_alerts[[c for c in display_cols if c in df_alerts.columns]], use_container_width=True)
     else:
-        import database
         raw_alerts = database.get_recent_alerts(limit=10)
         if raw_alerts:
             st.dataframe(pd.DataFrame(raw_alerts), use_container_width=True)
@@ -216,7 +218,6 @@ elif page == "Network Traffic Analysis":
     
     stats = fetch_api("/analytics/overview")
     if not stats:
-        import database
         stats = database.get_overview_statistics()
         
     cat_dist = stats.get("category_distribution", {})
@@ -319,7 +320,6 @@ elif page == "Intrusion Detection":
                     raise Exception(resp.text)
             except Exception:
                 # Direct fallback
-                import predict
                 pred_data = predict.get_predictor().predict_single_flow(payload)
                 
             pred_class = pred_data["prediction"]
@@ -360,7 +360,6 @@ elif page == "Intrusion Detection":
             
             if st.button("🚀 Run Batch Intrusion Detection"):
                 with st.spinner("Analyzing network records with Multiclass SVM..."):
-                    import predict
                     predictor = predict.get_predictor()
                     results = predictor.predict_batch(df_upload, log_to_db=True)
                     df_res = pd.DataFrame(results)
@@ -385,7 +384,6 @@ elif page == "Model Performance":
     
     meta = fetch_api("/model/info")
     if not meta:
-        import config
         if config.METADATA_PATH.exists():
             with open(config.METADATA_PATH, "r", encoding="utf-8") as f:
                 meta = json.load(f)
@@ -405,7 +403,6 @@ elif page == "Model Performance":
     st.markdown("---")
     
     # Load Evaluation Reports
-    import config
     eval_json_path = config.REPORTS_DIR / "evaluation_report.json"
     if eval_json_path.exists():
         with open(eval_json_path, "r", encoding="utf-8") as f:
@@ -444,7 +441,6 @@ elif page == "Prediction History":
     status_arg = None if status_filter == "All" else status_filter
     cat_arg = None if cat_filter == "All" else cat_filter
     
-    import database
     history = database.get_prediction_history(limit=100, status_filter=status_arg, category_filter=cat_arg)
     
     if history:
