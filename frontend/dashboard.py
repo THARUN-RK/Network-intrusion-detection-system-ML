@@ -24,7 +24,6 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-st.set_option('dataframe.showArrow', False)
 
 # Configure Streamlit Page
 st.set_page_config(

@@ -334,15 +334,9 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ## ⚠️ Known Issues & Platform Workarounds
 
-### PyArrow / NumPy Version Mismatch
-Streamlit's default Arrow-backed DataFrame rendering requires `pyarrow`, which expects **NumPy 2.0+**. If your environment ships an older NumPy (e.g. 1.26.x), the dashboard will crash with:
-```
-ImportError: pyarrow requires NumPy 2.0 or newer, found 1.26.4
-```
-**Fix applied:** `requirements.txt` now pins `numpy>=2.0.0`. As a defensive fallback, the dashboard also disables Arrow conversion:
-```python
-st.set_option('dataframe.showArrow', False)
-```
+### PyArrow / NumPy Compatibility
+In modern Streamlit versions, `numpy>=2.0.0` is required for pyarrow table serialization.
+**Fix applied:** `requirements.txt` specifies `numpy>=2.0.0,<3.0.0` and all tables are passed as plain DataFrames with formatted string columns.
 
 ### Streamlit Credentials Permission (Windows Sandbox)
 On restricted Windows environments, Streamlit cannot write to `C:\Users\<user>\.streamlit\credentials.toml`.
