@@ -140,6 +140,25 @@ def fetch_api(endpoint: str, default=None):
         return default
 
 
+def sanitize_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Ensure all columns have clean, Arrow-compatible types (no mixed types or raw objects)."""
+    if df is None:
+        return pd.DataFrame()
+    if isinstance(df, list):
+        df = pd.DataFrame(df)
+    if not isinstance(df, pd.DataFrame) or df.empty:
+        return df
+    clean = df.copy()
+    for col in clean.columns:
+        if clean[col].dtype == "object":
+            clean[col] = clean[col].fillna("").astype(str)
+        elif pd.api.types.is_numeric_dtype(clean[col]):
+            clean[col] = pd.to_numeric(clean[col], errors="coerce")
+        elif pd.api.types.is_datetime64_any_dtype(clean[col]):
+            clean[col] = clean[col].astype(str)
+    return clean
+
+
 # ==============================================================================
 # SIDEBAR NAVIGATION & AUTHENTICATION
 # ==============================================================================
@@ -254,7 +273,7 @@ if page == "Security Overview":
     
     if alerts_list:
         df_alerts = pd.DataFrame(alerts_list)
-        st.dataframe(df_alerts, use_container_width=True)
+        st.dataframe(sanitize_df(df_alerts), use_container_width=True)
         
         # Interactive alert resolution actions
         st.markdown("##### Alert Triage Actions")
@@ -407,7 +426,7 @@ elif page == "Intrusion Detection Engine":
                     results = predict.get_predictor().predict_batch(df_in, log_to_db=True)
                     df_res = pd.DataFrame(results)
                     st.success(f"Triage complete! {len(df_res):,} records classified.")
-                    st.dataframe(df_res, use_container_width=True)
+                    st.dataframe(sanitize_df(df_res), use_container_width=True)
 
 
 # ==============================================================================
@@ -424,7 +443,7 @@ elif page == "IP Monitoring & Reputation":
     
     if ip_profiles:
         df_ips = pd.DataFrame(ip_profiles)
-        st.dataframe(df_ips, use_container_width=True)
+        st.dataframe(sanitize_df(df_ips), use_container_width=True)
         
         st.markdown("##### Host Defense & Firewall Control")
         b_col1, b_col2, b_col3 = st.columns([2, 1, 1])
@@ -467,7 +486,7 @@ elif page == "Incident Investigation":
         incidents = fetch_api("/soc/incidents") or database.get_incidents()
         if incidents:
             df_inc = pd.DataFrame(incidents)
-            st.dataframe(df_inc, use_container_width=True)
+            st.dataframe(sanitize_df(df_inc), use_container_width=True)
             
             st.markdown("##### Update Incident Investigation")
             u_col1, u_col2, u_col3 = st.columns([1, 1, 2])
@@ -555,7 +574,7 @@ elif page == "Model Performance & Metrics":
             fmt_cols = [c for c in ["precision", "recall", "f1_score", "false_positive_rate", "false_negative_rate"] if c in df_per.columns]
             if fmt_cols:
                 df_per[fmt_cols] = df_per[fmt_cols].apply(lambda x: x.map("{:.3f}".format))
-            st.dataframe(df_per, use_container_width=True)
+            st.dataframe(sanitize_df(df_per), use_container_width=True)
             
             col_cm1, col_cm2 = st.columns(2)
             with col_cm1:
@@ -594,7 +613,7 @@ elif page == "Model Performance & Metrics":
                     "Anomaly Rejections": d_val.get("anomaly_rejections", 0),
                     "Latency (ms)": f"{d_val.get('inference_latency_ms', 0):.3f}"
                 })
-            st.dataframe(pd.DataFrame(rows), use_container_width=True)
+            st.dataframe(sanitize_df(pd.DataFrame(rows)), use_container_width=True)
             
             day_img_path = config.REPORTS_DIR / "day_wise_evaluation.png"
             if day_img_path.exists():
@@ -662,7 +681,7 @@ elif page == "Executive Reports & Audit Logs":
     st.markdown("### Historical Audit Trail")
     history_records = database.get_prediction_history(limit=100)
     if history_records:
-        st.dataframe(pd.DataFrame(history_records), use_container_width=True)
+        st.dataframe(sanitize_df(pd.DataFrame(history_records)), use_container_width=True)
 
 
 # ==============================================================================
@@ -689,6 +708,6 @@ elif page == "Live Network Monitoring":
         st.markdown("#### Active Flow Buffer & Real-Time Threat Stream")
         recent_preds = database.get_prediction_history(limit=15)
         if recent_preds:
-            st.dataframe(pd.DataFrame(recent_preds)[["id", "timestamp", "source_ip", "destination_ip", "destination_port", "predicted_category", "severity", "confidence"]], use_container_width=True)
+            st.dataframe(sanitize_df(pd.DataFrame(recent_preds)[["id", "timestamp", "source_ip", "destination_ip", "destination_port", "predicted_category", "severity", "confidence"]]), use_container_width=True)
         else:
             st.info("Awaiting live network packets...")
