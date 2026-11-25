@@ -138,6 +138,44 @@ def test_route_check_ip_endpoint_private():
     assert res.threat_status == "UNKNOWN"
 
 
+def test_route_check_ip_endpoint_public_mocked():
+    with patch("backend.app.services.threat_intel.query_virustotal", new_callable=AsyncMock) as mock_vt, \
+         patch("backend.app.services.threat_intel.query_abuseipdb", new_callable=AsyncMock) as mock_abuse:
+        
+        mock_vt.return_value = {
+            "source": "VirusTotal v3",
+            "status": "SUCCESS",
+            "available": True,
+            "malicious_count": 0,
+            "suspicious_count": 0,
+            "harmless_count": 70,
+            "undetected_count": 10,
+            "total_engines": 80,
+            "detection_ratio": "0/80",
+            "country": "US",
+            "asn": "AS15169",
+            "network": "8.8.8.0/24"
+        }
+        mock_abuse.return_value = {
+            "source": "AbuseIPDB",
+            "status": "SUCCESS",
+            "available": True,
+            "abuse_confidence_score": 0,
+            "total_reports": 0,
+            "distinct_users": 0,
+            "country": "US",
+            "isp": "Google LLC",
+            "is_tor": False,
+            "is_whitelisted": False
+        }
+
+        req = IPThreatLookupRequest(ip_address="8.8.8.8", force_refresh=True)
+        res = asyncio.run(check_ip_threat(req))
+        assert res.ip_address == "8.8.8.8"
+        assert res.validation["is_public"] is True
+        assert res.threat_status == "NO KNOWN THREATS"
+
+
 def test_route_check_ip_invalid():
     req = IPThreatLookupRequest(ip_address="invalid.ip.format", force_refresh=True)
     res = asyncio.run(check_ip_threat(req))
