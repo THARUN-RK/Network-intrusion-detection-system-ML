@@ -6,12 +6,14 @@ import json
 import asyncio
 import logging
 from typing import Dict, Any, List, Optional
+from pathlib import Path
 from fastapi import APIRouter, Request, Query, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 
 import database
 from backend.app.stream_manager import stream_broadcaster
 from backend.app import simulator
+import predict
 
 logger = logging.getLogger(__name__)
 
@@ -88,3 +90,72 @@ def toggle_simulator(enabled: Optional[bool] = None):
     else:
         simulator.SIMULATOR_ENABLED = enabled
     return {"simulator_enabled": simulator.SIMULATOR_ENABLED}
+
+
+@router.get("/model-metrics")
+def get_model_evaluation_metrics():
+    """
+    Returns authentic, verified evaluation metrics read directly from reports/evaluation_report.json
+    or results/metrics.json. Never returns fabricated or invented values.
+    """
+    root_dir = Path(__file__).resolve().parent.parent.parent.parent
+    report_file = root_dir / "reports" / "evaluation_report.json"
+    results_file = root_dir / "results" / "metrics.json"
+
+    metrics_data = None
+    source_file = None
+
+    if report_file.exists():
+        try:
+            with open(report_file, "r", encoding="utf-8") as f:
+                metrics_data = json.load(f)
+                source_file = "reports/evaluation_report.json"
+        except Exception as e:
+            logger.warning(f"Failed to parse {report_file}: {e}")
+
+    if not metrics_data and results_file.exists():
+        try:
+            with open(results_file, "r", encoding="utf-8") as f:
+                metrics_data = json.load(f)
+                source_file = "results/metrics.json"
+        except Exception as e:
+            logger.warning(f"Failed to parse {results_file}: {e}")
+
+    if not metrics_data:
+        return {
+            "available": False,
+            "message": "Evaluation results not available"
+        }
+
+    predictor = predict.get_predictor()
+    meta = predictor.metadata
+
+    return {
+        "available": True,
+        "source_file": source_file,
+        "model_type": meta.get("model_type", "Support Vector Machine"),
+        "kernel": meta.get("kernel", "rbf"),
+        "dataset": "CIC-IDS2017 Benchmark",
+        "feature_count": meta.get("feature_count", len(predictor.expected_features)),
+        "accuracy": metrics_data.get("accuracy"),
+        "macro_precision": metrics_data.get("macro_precision"),
+        "macro_recall": metrics_data.get("macro_recall"),
+        "macro_f1_score": metrics_data.get("macro_f1_score"),
+        "weighted_f1_score": metrics_data.get("weighted_f1_score"),
+        "macro_pr_auc": metrics_data.get("macro_pr_auc"),
+        "prediction_latency_ms": metrics_data.get("prediction_latency_ms_per_record"),
+        "total_test_samples": metrics_data.get("total_test_samples"),
+        "classes": metrics_data.get("classes", predictor.classes),
+        "per_class_metrics": metrics_data.get("per_class_metrics", {})
+    }
+
+
+@router.get("/model-report")
+def download_model_report():
+    """Returns the genuine evaluation report JSON file."""
+    root_dir = Path(__file__).resolve().parent.parent.parent.parent
+    report_file = root_dir / "reports" / "evaluation_report.json"
+    if not report_file.exists():
+        raise HTTPException(status_code=404, detail="Evaluation results not available")
+    return FileResponse(report_file, media_type="application/json", filename="evaluation_report.json")
+

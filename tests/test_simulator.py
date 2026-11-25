@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 import database
 import predict
 from backend.app.simulator import NetworkTrafficSimulator
-from backend.app.routes.api_live import get_live_soc_stats, get_live_soc_timeseries, toggle_simulator
+from backend.app.routes.api_live import get_live_soc_stats, get_live_soc_timeseries, toggle_simulator, get_model_evaluation_metrics, download_model_report
 
 
 def test_simulator_pool_indexing():
@@ -132,3 +132,21 @@ def test_table_pruning():
         assert deleted >= 0
     finally:
         session.close()
+
+
+def test_model_metrics_endpoint():
+    res = get_model_evaluation_metrics()
+    assert isinstance(res, dict)
+    if res["available"]:
+        assert "accuracy" in res
+        assert res["accuracy"] >= 0.90
+        assert "Support Vector Machine" in res["model_type"]
+        assert res["kernel"] == "rbf"
+        assert res["feature_count"] == 71
+        assert "macro_f1_score" in res
+    else:
+        assert res["message"] == "Evaluation results not available"
+
+    report_resp = download_model_report()
+    assert report_resp is not None
+
