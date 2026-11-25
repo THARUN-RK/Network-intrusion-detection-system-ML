@@ -199,3 +199,46 @@ class UnifiedDashboardStatsResponse(BaseModel):
     clean_ips: int
     category_distribution: Dict[str, int]
     threat_status_distribution: Dict[str, int]
+
+
+# ==============================================================================
+# IP-BASED NETWORK ATTACK ANALYZER SCHEMAS
+# ==============================================================================
+
+class IPAttackAnalyzerRequest(BaseModel):
+    ip_address: str = Field(..., description="Source IPv4 or IPv6 address to analyze")
+
+
+class FlowAnalysisItem(BaseModel):
+    flow_index: int
+    record_id: str
+    timestamp: str
+    destination_port: int
+    flow_duration: float
+    predicted_class: str
+    security_status: str
+    confidence: float
+    severity: str
+    probabilities: Optional[Dict[str, float]] = None
+
+
+class IPAttackAnalyzerResponse(BaseModel):
+    has_data: bool
+    status: str
+    message: Optional[str] = None
+    source_ip: str
+    validation: Optional[Dict[str, Any]] = None
+    total_flows: int = 0
+    benign_flow_count: int = 0
+    malicious_flow_count: int = 0
+    dos_flow_count: int = 0
+    ddos_flow_count: int = 0
+    portscan_flow_count: int = 0
+    brute_force_flow_count: int = 0
+    other_attacks_count: int = 0
+    most_frequent_attack: Optional[str] = None
+    average_confidence: Optional[float] = None
+    attack_severity: Optional[str] = None
+    class_distribution: Optional[Dict[str, int]] = None
+    flow_records: List[FlowAnalysisItem] = Field(default_factory=list)
+    distinction_note: Optional[str] = None

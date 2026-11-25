@@ -487,16 +487,23 @@ async def analyze_ip_threat(
         threat_intel_cache.set(ip_meta["ip"], result)
         return result
 
-    # Query APIs concurrently
+    # Query APIs concurrently with exception isolation
     if http_client is not None:
         vt_task = query_virustotal(ip_meta["ip"], http_client)
         abuse_task = query_abuseipdb(ip_meta["ip"], http_client)
-        vt_res, abuse_res = await asyncio.gather(vt_task, abuse_task)
+        raw_results = await asyncio.gather(vt_task, abuse_task, return_exceptions=True)
     else:
         async with httpx.AsyncClient(headers={"User-Agent": "NIDS-Threat-Intelligence-System/2.0"}, trust_env=False) as client:
             vt_task = query_virustotal(ip_meta["ip"], client)
             abuse_task = query_abuseipdb(ip_meta["ip"], client)
-            vt_res, abuse_res = await asyncio.gather(vt_task, abuse_task)
+            raw_results = await asyncio.gather(vt_task, abuse_task, return_exceptions=True)
+
+    vt_res = raw_results[0] if isinstance(raw_results[0], dict) else {
+        "source": "VirusTotal v3", "status": "ERROR", "available": False, "error": str(raw_results[0])
+    }
+    abuse_res = raw_results[1] if isinstance(raw_results[1], dict) else {
+        "source": "AbuseIPDB", "status": "ERROR", "available": False, "error": str(raw_results[1])
+    }
 
     # Evaluate threat assessment
     assessment = evaluate_hybrid_threat_status(ip_meta, vt_res, abuse_res)

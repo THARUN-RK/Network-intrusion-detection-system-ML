@@ -1003,6 +1003,9 @@
         <button class="nav-tab-btn" data-tab="tab-ip-checker" onclick="switchTab('tab-ip-checker')">
             <span>🔍</span> IP Reputation Checker
         </button>
+        <button class="nav-tab-btn" data-tab="tab-attack-analyzer" onclick="switchTab('tab-attack-analyzer')">
+            <span>🎯</span> IP Attack Analyzer
+        </button>
         <button class="nav-tab-btn" data-tab="tab-svm-classifier" onclick="switchTab('tab-svm-classifier')">
             <span>⚡</span> Interactive SVM Classifier
         </button>
@@ -1405,6 +1408,200 @@
                             <span id="abuse-last-date" style="font-weight:600;">--</span>
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- MODULE: IP-BASED NETWORK ATTACK ANALYZER -->
+        <!-- =============================================================== -->
+        <section id="tab-attack-analyzer" class="tab-pane">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <div class="card-title">🎯 IP-Based Network Attack Analyzer</div>
+                        <div class="card-explanation">
+                            Search available network traffic records for an entered source IP, extract authentic 71-feature vectors,
+                            and run the trained multiclass RBF SVM model to identify observed network attacks (BENIGN, DoS, DDoS, PortScan, Brute Force, etc.).
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Architectural Distinction Callout Banner -->
+                <div style="background: rgba(56, 189, 248, 0.08); border-left: 4px solid #38bdf8; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; font-size: 0.82rem; line-height: 1.5; color: var(--text-secondary);">
+                    <div style="font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <span>ℹ️</span> Observed Network Traffic Classifier vs. Threat Intelligence Reputation
+                    </div>
+                    <div>
+                        <strong>Empirical Traffic Analysis:</strong> This engine evaluates genuine recorded network session flows associated with an IP.
+                        The trained multiclass RBF SVM inspects <strong>71 statistical traffic features</strong> (packet lengths, inter-arrival times, window sizes, flags).
+                        The IP string itself is <em>never</em> used as an ML input feature, preserving strict scientific integrity.
+                        This is completely distinct from external threat intelligence reputation scores (VirusTotal / AbuseIPDB), which reflect external third-party reports.
+                    </div>
+                </div>
+
+                <!-- Input Group -->
+                <div class="ip-input-container">
+                    <input type="text" id="analyzer-target-ip" class="ip-input-field" placeholder="Enter source IPv4 or IPv6 (e.g. 185.220.101.5 or 45.33.32.156)..." value="185.220.101.5">
+                    <button class="btn btn-primary" id="btn-run-analyzer" onclick="runIPAttackAnalysis()">
+                        <span>🎯</span> Analyze Network Attacks
+                    </button>
+                </div>
+
+                <!-- Quick Target Pills -->
+                <div class="quick-ip-pills">
+                    <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">BENCHMARK SAMPLE TARGETS:</span>
+                    <span class="ip-pill" onclick="quickFillAnalyzerIP('185.220.101.5')">185.220.101.5 (DDoS LOIC)</span>
+                    <span class="ip-pill" onclick="quickFillAnalyzerIP('45.33.32.156')">45.33.32.156 (PortScan SYN)</span>
+                    <span class="ip-pill" onclick="quickFillAnalyzerIP('194.26.29.112')">194.26.29.112 (FTP Brute Force)</span>
+                    <span class="ip-pill" onclick="quickFillAnalyzerIP('198.51.100.42')">198.51.100.42 (DoS Hulk)</span>
+                    <span class="ip-pill" onclick="quickFillAnalyzerIP('185.220.101.1')">185.220.101.1 (ARES Botnet)</span>
+                    <span class="ip-pill" onclick="quickFillAnalyzerIP('192.168.1.101')">192.168.1.101 (Benign Traffic)</span>
+                    <span class="ip-pill" onclick="quickFillAnalyzerIP('8.8.8.8')">8.8.8.8 (Insufficient Data)</span>
+                </div>
+
+                <!-- Validation & Status Bar -->
+                <div id="analyzer-status-bar" style="display:none; margin-top: 18px; padding: 12px 18px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 8px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                        <div style="display:flex; align-items:center; gap: 10px;">
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;" id="analyzer-display-ip">--</span>
+                            <span class="badge" id="analyzer-ip-version-badge">IPv4</span>
+                            <span class="badge" id="analyzer-ip-scope-badge">PUBLIC</span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);" id="analyzer-status-message">
+                            Evaluating network flows...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INSUFFICIENT DATA Banner -->
+                <div id="analyzer-insufficient-data-box" style="display:none; margin-top: 20px; padding: 24px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem; margin-bottom: 8px;">⚠️</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: #f59e0b; margin-bottom: 6px;">INSUFFICIENT DATA</div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); max-width: 650px; margin: 0 auto; line-height: 1.6;" id="analyzer-insufficient-text">
+                        No network traffic records found for this IP address in the historical database or benchmark traffic sample.
+                        The system strictly avoids fabricating synthetic packets or hallucinating attack behavior.
+                    </div>
+                </div>
+
+                <!-- Analysis Results Section -->
+                <div id="analyzer-results-section" style="display:none; margin-top: 24px;">
+
+                    <!-- Overall Attack Summary Banner -->
+                    <div id="analyzer-severity-card" style="padding: 18px 22px; border-radius: 10px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; border: 1px solid var(--border-color); background: var(--bg-surface);">
+                        <div>
+                            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700;">Overall Observed Attack Severity</div>
+                            <div style="display: flex; align-items: center; gap: 12px; margin-top: 4px;">
+                                <span class="badge" id="analyzer-overall-severity-badge" style="font-size: 0.9rem; padding: 4px 14px;">SAFE</span>
+                                <span style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary);" id="analyzer-primary-attack-text">No Attacks Detected</span>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">AVERAGE PREDICTION CONFIDENCE</div>
+                            <div style="font-size: 1.6rem; font-weight: 800; color: #38bdf8;" id="analyzer-avg-confidence">0.0%</div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Metrics Grid -->
+                    <div class="metrics-grid" style="margin-bottom: 24px;">
+                        <div class="metric-card">
+                            <div class="metric-title">
+                                <span>Total Network Flows</span>
+                                <span class="tooltip-trigger" data-tooltip="Total flows retrieved and analyzed for this source IP">?</span>
+                            </div>
+                            <div class="metric-value" id="analyzer-total-flows">0</div>
+                            <div class="metric-subtext">Evaluated across 71 features</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">
+                                <span>BENIGN Flows</span>
+                                <span class="tooltip-trigger" data-tooltip="Normal, legitimate network connections">?</span>
+                            </div>
+                            <div class="metric-value" id="analyzer-benign-flows" style="color: #10b981;">0</div>
+                            <div class="metric-subtext" id="analyzer-benign-pct">0% of total</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">
+                                <span>Malicious Flows</span>
+                                <span class="tooltip-trigger" data-tooltip="Total malicious connections detected by SVM">?</span>
+                            </div>
+                            <div class="metric-value" id="analyzer-malicious-flows" style="color: #f43f5e;">0</div>
+                            <div class="metric-subtext" id="analyzer-malicious-pct">0% of total</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">
+                                <span>DoS Flows</span>
+                                <span class="tooltip-trigger" data-tooltip="Denial of Service flows (Hulk, GoldenEye, Slowloris)">?</span>
+                            </div>
+                            <div class="metric-value" id="analyzer-dos-flows">0</div>
+                            <div class="metric-subtext">Resource exhaustion</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">
+                                <span>DDoS Flows</span>
+                                <span class="tooltip-trigger" data-tooltip="Distributed Denial of Service flows (LOIC flooding)">?</span>
+                            </div>
+                            <div class="metric-value" id="analyzer-ddos-flows" style="color: #fb7185;">0</div>
+                            <div class="metric-subtext">Volumetric flood</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">
+                                <span>PortScan Flows</span>
+                                <span class="tooltip-trigger" data-tooltip="Port scanning / reconnaissance probing flows">?</span>
+                            </div>
+                            <div class="metric-value" id="analyzer-portscan-flows" style="color: #f59e0b;">0</div>
+                            <div class="metric-subtext">Network reconnaissance</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">
+                                <span>Brute Force Flows</span>
+                                <span class="tooltip-trigger" data-tooltip="Credential brute force attacks (FTP-Patator, SSH-Patator)">?</span>
+                            </div>
+                            <div class="metric-value" id="analyzer-bruteforce-flows" style="color: #a855f7;">0</div>
+                            <div class="metric-subtext">Authentication guessing</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">
+                                <span>Other Attacks</span>
+                                <span class="tooltip-trigger" data-tooltip="Botnet, Web Attacks, Infiltration, Heartbleed">?</span>
+                            </div>
+                            <div class="metric-value" id="analyzer-other-flows">0</div>
+                            <div class="metric-subtext">Specialized exploits</div>
+                        </div>
+                    </div>
+
+                    <!-- Flow Records Table -->
+                    <div class="card" style="margin-top: 18px; padding: 18px 20px;">
+                        <div class="card-header" style="margin-bottom: 14px;">
+                            <div class="card-title-group">
+                                <div class="card-title" style="font-size: 0.95rem;">📋 Individual Flow Classifications (Multiclass SVM Results)</div>
+                                <div class="card-explanation">
+                                    Each flow was evaluated by the trained RBF SVM pipeline across 71 normalized statistical attributes.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table id="analyzer-flows-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Record ID</th>
+                                        <th>Timestamp</th>
+                                        <th>Dest Port</th>
+                                        <th>Duration (s)</th>
+                                        <th>Predicted Class</th>
+                                        <th>True Model Confidence</th>
+                                        <th>Severity</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analyzer-flows-tbody">
+                                    <tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding: 18px;">No flows loaded yet.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </section>
@@ -2682,6 +2879,142 @@
             document.getElementById('flow-bytes-s').value = p.flow_bytes_s;
 
             document.getElementById('sample-source-attribution').innerText = `📄 Loaded test vector: ${p.sample_name}`;
+        }
+
+        // ===============================================================
+        // IP-BASED NETWORK ATTACK ANALYZER HANDLERS
+        // ===============================================================
+        function quickFillAnalyzerIP(ip) {
+            document.getElementById('analyzer-target-ip').value = ip;
+            runIPAttackAnalysis();
+        }
+
+        async function runIPAttackAnalysis() {
+            const rawIp = document.getElementById('analyzer-target-ip').value.trim();
+            if (!rawIp) return;
+
+            const btn = document.getElementById('btn-run-analyzer');
+            btn.disabled = true;
+            btn.innerText = "Analyzing Flows...";
+
+            const statusBar = document.getElementById('analyzer-status-bar');
+            statusBar.style.display = 'block';
+            document.getElementById('analyzer-display-ip').innerText = rawIp;
+            document.getElementById('analyzer-status-message').innerText = "Querying traffic records and running SVM pipeline...";
+
+            try {
+                const res = await fetch('/api/intel/analyzer/ip', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip_address: rawIp })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    alert(`Analyzer Error: ${err.detail || 'Failed to analyze IP traffic'}`);
+                    return;
+                }
+
+                const data = await res.json();
+                renderIPAttackAnalysis(data);
+            } catch (err) {
+                console.error("IP attack analysis error:", err);
+                alert("Network error connecting to IP attack analyzer endpoint.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "<span>🎯</span> Analyze Network Attacks";
+            }
+        }
+
+        function renderIPAttackAnalysis(data) {
+            const statusBar = document.getElementById('analyzer-status-bar');
+            statusBar.style.display = 'block';
+            document.getElementById('analyzer-display-ip').innerText = data.source_ip;
+
+            const vBadge = document.getElementById('analyzer-ip-version-badge');
+            const sBadge = document.getElementById('analyzer-ip-scope-badge');
+            if (data.validation) {
+                vBadge.innerText = `IPv${data.validation.version || 4}`;
+                sBadge.innerText = data.validation.is_public ? 'PUBLIC' : 'PRIVATE';
+                sBadge.className = data.validation.is_public ? 'badge badge-LOW' : 'badge badge-MEDIUM';
+            }
+
+            const insufficientBox = document.getElementById('analyzer-insufficient-data-box');
+            const resultsSection = document.getElementById('analyzer-results-section');
+
+            if (!data.has_data || data.total_flows === 0) {
+                document.getElementById('analyzer-status-message').innerText = "Status: INSUFFICIENT DATA (0 flows found)";
+                insufficientBox.style.display = 'block';
+                document.getElementById('analyzer-insufficient-text').innerText = data.message || `No network traffic records found for IP ${data.source_ip}.`;
+                resultsSection.style.display = 'none';
+                return;
+            }
+
+            document.getElementById('analyzer-status-message').innerText = `Status: COMPLETED (${data.total_flows} flows analyzed)`;
+            insufficientBox.style.display = 'none';
+            resultsSection.style.display = 'block';
+
+            // Metrics cards
+            document.getElementById('analyzer-total-flows').innerText = data.total_flows;
+            document.getElementById('analyzer-benign-flows').innerText = data.benign_flow_count;
+            const benignPct = ((data.benign_flow_count / data.total_flows) * 100).toFixed(1);
+            document.getElementById('analyzer-benign-pct').innerText = `${benignPct}% of total`;
+
+            document.getElementById('analyzer-malicious-flows').innerText = data.malicious_flow_count;
+            const malPct = ((data.malicious_flow_count / data.total_flows) * 100).toFixed(1);
+            document.getElementById('analyzer-malicious-pct').innerText = `${malPct}% of total`;
+
+            document.getElementById('analyzer-dos-flows').innerText = data.dos_flow_count;
+            document.getElementById('analyzer-ddos-flows').innerText = data.ddos_flow_count;
+            document.getElementById('analyzer-portscan-flows').innerText = data.portscan_flow_count;
+            document.getElementById('analyzer-bruteforce-flows').innerText = data.brute_force_flow_count;
+            document.getElementById('analyzer-other-flows').innerText = data.other_attacks_count;
+
+            // Severity & Confidence Banner
+            const sevBadge = document.getElementById('analyzer-overall-severity-badge');
+            sevBadge.innerText = data.attack_severity || 'SAFE';
+            sevBadge.className = `badge badge-${data.attack_severity || 'SAFE'}`;
+
+            document.getElementById('analyzer-primary-attack-text').innerText = data.most_frequent_attack || 'BENIGN';
+            document.getElementById('analyzer-avg-confidence').innerText = `${(data.average_confidence || 0).toFixed(1)}%`;
+
+            // Flow table
+            const tbody = document.getElementById('analyzer-flows-tbody');
+            if (!data.flow_records || data.flow_records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding: 18px;">No individual records available.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.flow_records.map(f => {
+                const isBenign = f.predicted_class === 'BENIGN';
+                const rowClass = isBenign ? '' : 'style="background: rgba(244, 63, 94, 0.04);"';
+                const clsBadge = isBenign 
+                    ? '<span class="badge badge-SAFE">BENIGN</span>'
+                    : `<span class="badge badge-${f.severity || 'HIGH'}">${f.predicted_class}</span>`;
+                const conf = Number(f.confidence) || 0.0;
+                const meterCol = isBenign ? '#10b981' : '#f43f5e';
+
+                return `
+                    <tr ${rowClass}>
+                        <td class="mono">${f.flow_index}</td>
+                        <td class="mono" style="font-size:0.75rem;">${f.record_id}</td>
+                        <td class="mono" style="font-size:0.75rem; color:var(--text-muted);">${f.timestamp}</td>
+                        <td class="mono">${f.destination_port}</td>
+                        <td class="mono">${f.flow_duration.toFixed(1)}s</td>
+                        <td>${clsBadge}</td>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div class="conf-meter" style="width:70px;">
+                                    <div class="conf-fill" style="width:${Math.min(100, conf)}%; background:${meterCol};"></div>
+                                </div>
+                                <span class="mono">${conf.toFixed(1)}%</span>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-${f.severity}">${f.severity}</span></td>
+                        <td><span style="font-size:0.75rem; font-weight:700; color:${isBenign ? '#10b981' : '#fb7185'};">${f.security_status}</span></td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         async function classifyFlow() {

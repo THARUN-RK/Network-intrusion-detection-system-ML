@@ -159,7 +159,10 @@ class NIDSPredictor:
                 destination_ip=dst_ip,
                 protocol=proto,
                 is_anomaly=is_anomaly,
-                metadata={"probabilities": prob_dict}
+                metadata={
+                    "features": {k: float(v) for k, v in record.items() if isinstance(v, (int, float)) and not np.isnan(v)},
+                    "probabilities": prob_dict
+                }
             )
             
         return result

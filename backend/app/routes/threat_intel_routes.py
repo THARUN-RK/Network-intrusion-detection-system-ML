@@ -9,7 +9,7 @@ Provides endpoints for:
 """
 
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, HTTPException, Query, Response, status
 
 import database
@@ -18,13 +18,20 @@ from backend.app.schemas import (
     IPThreatLookupResponse,
     IPThreatHistoryResponse,
     IPThreatKpiResponse,
-    UnifiedDashboardStatsResponse
+    UnifiedDashboardStatsResponse,
+    IPAttackAnalyzerRequest,
+    IPAttackAnalyzerResponse
 )
 from backend.app.services.threat_intel import analyze_ip_threat
+from backend.app.services.ip_flow_analyzer import (
+    analyze_ip_network_attacks,
+    get_observed_ips_list
+)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/intel", tags=["Threat Intelligence & IP Reputation"])
+analyzer_router = APIRouter(prefix="/api/analyzer", tags=["IP Attack Analyzer"])
 
 
 @router.post(
@@ -239,4 +246,62 @@ def get_dashboard_stats():
         )
     except Exception as e:
         logger.error(f"Error generating dashboard stats: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==============================================================================
+# IP-BASED NETWORK ATTACK ANALYZER ENDPOINTS
+# ==============================================================================
+
+@router.post(
+    "/analyzer/ip",
+    response_model=IPAttackAnalyzerResponse,
+    summary="Analyze Network Attacks by Source IP",
+    description="Searches observed network traffic records for the entered IP, extracts 71 features, passes through the trained SVM model, and summarizes attack metrics."
+)
+@analyzer_router.post(
+    "/ip",
+    response_model=IPAttackAnalyzerResponse,
+    summary="Analyze Network Attacks by Source IP",
+    description="Searches observed network traffic records for the entered IP, extracts 71 features, passes through the trained SVM model, and summarizes attack metrics."
+)
+def analyze_ip_attacks_endpoint(payload: IPAttackAnalyzerRequest):
+    """
+    Evaluates empirical network session traffic for a specific source IP.
+    Returns INSUFFICIENT DATA if no matching flows exist.
+    """
+    raw_ip = payload.ip_address.strip() if payload.ip_address else ""
+    if not raw_ip:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Source IP address cannot be empty."
+        )
+
+    try:
+        result = analyze_ip_network_attacks(raw_ip)
+        return IPAttackAnalyzerResponse(**result)
+    except Exception as e:
+        logger.error(f"Error analyzing IP network attacks for '{raw_ip}': {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"IP attack analysis encountered an internal error: {str(e)}"
+        )
+
+
+@router.get(
+    "/analyzer/observed-ips",
+    summary="Get List of Observed Benchmark and Live Traffic Source IPs",
+    description="Returns source IPs available for immediate empirical network attack analysis."
+)
+@analyzer_router.get(
+    "/observed-ips",
+    summary="Get List of Observed Benchmark and Live Traffic Source IPs",
+    description="Returns source IPs available for immediate empirical network attack analysis."
+)
+def get_observed_ips_endpoint():
+    """Returns sample observed source IPs with their known attack classifications."""
+    try:
+        return get_observed_ips_list()
+    except Exception as e:
+        logger.error(f"Error fetching observed IPs: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))

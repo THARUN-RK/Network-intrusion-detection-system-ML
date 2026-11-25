@@ -54,6 +54,7 @@ app.include_router(analytics.router)
 app.include_router(history.router)
 app.include_router(api_live.router)
 app.include_router(threat_intel_routes.router)
+app.include_router(threat_intel_routes.analyzer_router)
 
 INDEX_HTML_PATH = Path(__file__).resolve().parent.parent.parent / "frontend" / "index.html"
 
