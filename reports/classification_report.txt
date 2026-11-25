@@ -4,7 +4,7 @@ Total Test Records: 3,000
 Overall Accuracy:   98.40%
 Macro F1-Score:     97.59%
 Weighted F1-Score:  98.45%
-Prediction Latency: 0.097 ms / flow
+Prediction Latency: 0.285 ms / flow
 
               precision    recall  f1-score   support
 

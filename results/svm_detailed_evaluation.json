@@ -21,9 +21,9 @@
             "weighted_f1_std": 0.0023,
             "macro_pr_auc_mean": 0.9933,
             "macro_pr_auc_std": 0.0013,
-            "fold_fit_time_mean_s": 2.137
+            "fold_fit_time_mean_s": 2.053
         },
-        "full_train_time_seconds": 2.983,
+        "full_train_time_seconds": 2.735,
         "test_balanced": {
             "n_samples": 450,
             "accuracy": 0.9867,
@@ -37,8 +37,8 @@
             "mean_fnr": 0.0133,
             "binary_benign_fpr": 0.0,
             "binary_attack_recall": 0.9951,
-            "inference_time_ms_total": 44.85,
-            "inference_latency_ms_per_flow": 0.0997,
+            "inference_time_ms_total": 38.96,
+            "inference_latency_ms_per_flow": 0.0866,
             "per_class": {
                 "BENIGN": {
                     "precision": 0.9574,
@@ -267,8 +267,8 @@
             "mean_fnr": 0.0152,
             "binary_benign_fpr": 0.0262,
             "binary_attack_recall": 0.9982,
-            "inference_time_ms_total": 257.48,
-            "inference_latency_ms_per_flow": 0.0916,
+            "inference_time_ms_total": 239.59,
+            "inference_latency_ms_per_flow": 0.0852,
             "per_class": {
                 "BENIGN": {
                     "precision": 0.9995,
@@ -495,9 +495,9 @@
             "weighted_f1_std": 0.0023,
             "macro_pr_auc_mean": 0.995,
             "macro_pr_auc_std": 0.0016,
-            "fold_fit_time_mean_s": 2.421
+            "fold_fit_time_mean_s": 2.163
         },
-        "full_train_time_seconds": 2.988,
+        "full_train_time_seconds": 2.907,
         "test_balanced": {
             "n_samples": 450,
             "accuracy": 0.9756,
@@ -511,8 +511,8 @@
             "mean_fnr": 0.0244,
             "binary_benign_fpr": 0.0,
             "binary_attack_recall": 0.9852,
-            "inference_time_ms_total": 41.13,
-            "inference_latency_ms_per_flow": 0.0914,
+            "inference_time_ms_total": 37.99,
+            "inference_latency_ms_per_flow": 0.0844,
             "per_class": {
                 "BENIGN": {
                     "precision": 0.8824,
@@ -741,8 +741,8 @@
             "mean_fnr": 0.0271,
             "binary_benign_fpr": 0.0129,
             "binary_attack_recall": 0.9911,
-            "inference_time_ms_total": 224.94,
-            "inference_latency_ms_per_flow": 0.08,
+            "inference_time_ms_total": 227.22,
+            "inference_latency_ms_per_flow": 0.0808,
             "per_class": {
                 "BENIGN": {
                     "precision": 0.9978,

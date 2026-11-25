@@ -7,7 +7,7 @@
     },
     "cv_folds": 5,
     "cv_macro_f1": 0.9734490102247957,
-    "training_duration_seconds": 56.61,
+    "training_duration_seconds": 84.35,
     "feature_count": 71,
     "feature_names": [
         "Destination Port",

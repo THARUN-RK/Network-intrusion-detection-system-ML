@@ -1,5 +1,5 @@
 {
-    "evaluation_timestamp": "2026-11-25 04:38:22 UTC",
+    "evaluation_timestamp": "2026-11-25 05:00:04 UTC",
     "random_state": 42,
     "cv_folds": 5,
     "train_samples": 10500,
@@ -32,9 +32,9 @@
                 "weighted_f1_std": 0.0023,
                 "macro_pr_auc_mean": 0.9933,
                 "macro_pr_auc_std": 0.0013,
-                "fold_fit_time_mean_s": 2.137
+                "fold_fit_time_mean_s": 2.053
             },
-            "full_train_time_seconds": 2.983,
+            "full_train_time_seconds": 2.735,
             "test_balanced": {
                 "n_samples": 450,
                 "accuracy": 0.9867,
@@ -48,8 +48,8 @@
                 "mean_fnr": 0.0133,
                 "binary_benign_fpr": 0.0,
                 "binary_attack_recall": 0.9951,
-                "inference_time_ms_total": 44.85,
-                "inference_latency_ms_per_flow": 0.0997,
+                "inference_time_ms_total": 38.96,
+                "inference_latency_ms_per_flow": 0.0866,
                 "per_class": {
                     "BENIGN": {
                         "precision": 0.9574,
@@ -278,8 +278,8 @@
                 "mean_fnr": 0.0152,
                 "binary_benign_fpr": 0.0262,
                 "binary_attack_recall": 0.9982,
-                "inference_time_ms_total": 257.48,
-                "inference_latency_ms_per_flow": 0.0916,
+                "inference_time_ms_total": 239.59,
+                "inference_latency_ms_per_flow": 0.0852,
                 "per_class": {
                     "BENIGN": {
                         "precision": 0.9995,
@@ -506,9 +506,9 @@
                 "weighted_f1_std": 0.0023,
                 "macro_pr_auc_mean": 0.995,
                 "macro_pr_auc_std": 0.0016,
-                "fold_fit_time_mean_s": 2.421
+                "fold_fit_time_mean_s": 2.163
             },
-            "full_train_time_seconds": 2.988,
+            "full_train_time_seconds": 2.907,
             "test_balanced": {
                 "n_samples": 450,
                 "accuracy": 0.9756,
@@ -522,8 +522,8 @@
                 "mean_fnr": 0.0244,
                 "binary_benign_fpr": 0.0,
                 "binary_attack_recall": 0.9852,
-                "inference_time_ms_total": 41.13,
-                "inference_latency_ms_per_flow": 0.0914,
+                "inference_time_ms_total": 37.99,
+                "inference_latency_ms_per_flow": 0.0844,
                 "per_class": {
                     "BENIGN": {
                         "precision": 0.8824,
@@ -752,8 +752,8 @@
                 "mean_fnr": 0.0271,
                 "binary_benign_fpr": 0.0129,
                 "binary_attack_recall": 0.9911,
-                "inference_time_ms_total": 224.94,
-                "inference_latency_ms_per_flow": 0.08,
+                "inference_time_ms_total": 227.22,
+                "inference_latency_ms_per_flow": 0.0808,
                 "per_class": {
                     "BENIGN": {
                         "precision": 0.9978,
@@ -980,9 +980,9 @@
                 "weighted_f1_std": 0.0009,
                 "macro_pr_auc_mean": 0.9976,
                 "macro_pr_auc_std": 0.0012,
-                "fold_fit_time_mean_s": 1.006
+                "fold_fit_time_mean_s": 0.925
             },
-            "full_train_time_seconds": 1.208,
+            "full_train_time_seconds": 1.176,
             "test_balanced": {
                 "n_samples": 450,
                 "accuracy": 0.9978,
@@ -996,8 +996,8 @@
                 "mean_fnr": 0.0022,
                 "binary_benign_fpr": 0.0,
                 "binary_attack_recall": 0.9975,
-                "inference_time_ms_total": 34.6,
-                "inference_latency_ms_per_flow": 0.0769,
+                "inference_time_ms_total": 35.92,
+                "inference_latency_ms_per_flow": 0.0798,
                 "per_class": {
                     "BENIGN": {
                         "precision": 0.9783,
@@ -1226,8 +1226,8 @@
                 "mean_fnr": 0.001,
                 "binary_benign_fpr": 0.0102,
                 "binary_attack_recall": 1.0,
-                "inference_time_ms_total": 47.26,
-                "inference_latency_ms_per_flow": 0.0168,
+                "inference_time_ms_total": 37.16,
+                "inference_latency_ms_per_flow": 0.0132,
                 "per_class": {
                     "BENIGN": {
                         "precision": 1.0,
@@ -1454,9 +1454,9 @@
                 "weighted_f1_std": 0.0009,
                 "macro_pr_auc_mean": 0.9989,
                 "macro_pr_auc_std": 0.0012,
-                "fold_fit_time_mean_s": 3.371
+                "fold_fit_time_mean_s": 2.781
             },
-            "full_train_time_seconds": 3.857,
+            "full_train_time_seconds": 5.264,
             "test_balanced": {
                 "n_samples": 450,
                 "accuracy": 0.9978,
@@ -1470,8 +1470,8 @@
                 "mean_fnr": 0.0022,
                 "binary_benign_fpr": 0.0,
                 "binary_attack_recall": 0.9975,
-                "inference_time_ms_total": 6.94,
-                "inference_latency_ms_per_flow": 0.0154,
+                "inference_time_ms_total": 7.2,
+                "inference_latency_ms_per_flow": 0.016,
                 "per_class": {
                     "BENIGN": {
                         "precision": 0.9783,
@@ -1700,8 +1700,8 @@
                 "mean_fnr": 0.0004,
                 "binary_benign_fpr": 0.004,
                 "binary_attack_recall": 1.0,
-                "inference_time_ms_total": 20.48,
-                "inference_latency_ms_per_flow": 0.0073,
+                "inference_time_ms_total": 22.91,
+                "inference_latency_ms_per_flow": 0.0081,
                 "per_class": {
                     "BENIGN": {
                         "precision": 1.0,
@@ -1928,9 +1928,9 @@
                 "weighted_f1_std": 0.0024,
                 "macro_pr_auc_mean": 0.9913,
                 "macro_pr_auc_std": 0.0008,
-                "fold_fit_time_mean_s": 0.429
+                "fold_fit_time_mean_s": 28.001
             },
-            "full_train_time_seconds": 0.527,
+            "full_train_time_seconds": 37.652,
             "test_balanced": {
                 "n_samples": 450,
                 "accuracy": 0.9933,
@@ -1944,8 +1944,8 @@
                 "mean_fnr": 0.0067,
                 "binary_benign_fpr": 0.0,
                 "binary_attack_recall": 0.9975,
-                "inference_time_ms_total": 1.73,
-                "inference_latency_ms_per_flow": 0.0038,
+                "inference_time_ms_total": 6.48,
+                "inference_latency_ms_per_flow": 0.0144,
                 "per_class": {
                     "BENIGN": {
                         "precision": 0.9783,
@@ -2174,8 +2174,8 @@
                 "mean_fnr": 0.0083,
                 "binary_benign_fpr": 0.0316,
                 "binary_attack_recall": 1.0,
-                "inference_time_ms_total": 4.56,
-                "inference_latency_ms_per_flow": 0.0016,
+                "inference_time_ms_total": 16.36,
+                "inference_latency_ms_per_flow": 0.0058,
                 "per_class": {
                     "BENIGN": {
                         "precision": 1.0,
@@ -2402,9 +2402,9 @@
                 "weighted_f1_std": 0.0022,
                 "macro_pr_auc_mean": 0.994,
                 "macro_pr_auc_std": 0.0013,
-                "fold_fit_time_mean_s": 1.526
+                "fold_fit_time_mean_s": 4.579
             },
-            "full_train_time_seconds": 1.741,
+            "full_train_time_seconds": 4.702,
             "test_balanced": {
                 "n_samples": 450,
                 "accuracy": 0.9822,
@@ -2418,8 +2418,8 @@
                 "mean_fnr": 0.0178,
                 "binary_benign_fpr": 0.0,
                 "binary_attack_recall": 0.9901,
-                "inference_time_ms_total": 1.66,
-                "inference_latency_ms_per_flow": 0.0037,
+                "inference_time_ms_total": 6.91,
+                "inference_latency_ms_per_flow": 0.0153,
                 "per_class": {
                     "BENIGN": {
                         "precision": 0.9184,
@@ -2648,8 +2648,8 @@
                 "mean_fnr": 0.02,
                 "binary_benign_fpr": 0.0084,
                 "binary_attack_recall": 0.9947,
-                "inference_time_ms_total": 6.95,
-                "inference_latency_ms_per_flow": 0.0025,
+                "inference_time_ms_total": 14.53,
+                "inference_latency_ms_per_flow": 0.0052,
                 "per_class": {
                     "BENIGN": {
                         "precision": 0.9987,
@@ -2868,7 +2868,7 @@
         },
         "SVM_RBF_NoDstPort_Ablation": {
             "cv_5fold": null,
-            "full_train_time_seconds": 3.001,
+            "full_train_time_seconds": 11.268,
             "test_balanced": {
                 "n_samples": 450,
                 "accuracy": 0.9711,
@@ -2882,8 +2882,8 @@
                 "mean_fnr": 0.0289,
                 "binary_benign_fpr": 0.0,
                 "binary_attack_recall": 0.9951,
-                "inference_time_ms_total": 47.67,
-                "inference_latency_ms_per_flow": 0.1059,
+                "inference_time_ms_total": 146.9,
+                "inference_latency_ms_per_flow": 0.3264,
                 "per_class": {
                     "BENIGN": {
                         "precision": 0.9574,
@@ -3112,8 +3112,8 @@
                 "mean_fnr": 0.0351,
                 "binary_benign_fpr": 0.0338,
                 "binary_attack_recall": 0.9982,
-                "inference_time_ms_total": 266.92,
-                "inference_latency_ms_per_flow": 0.0949,
+                "inference_time_ms_total": 864.77,
+                "inference_latency_ms_per_flow": 0.3075,
                 "per_class": {
                     "BENIGN": {
                         "precision": 0.9995,

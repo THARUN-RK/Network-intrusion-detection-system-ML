@@ -1,8 +1,8 @@
 {
-    "evaluation_timestamp": "2026-11-25 04:45:59 UTC",
+    "evaluation_timestamp": "2026-11-25 05:05:11 UTC",
     "total_days_evaluated": 5,
     "total_flows_evaluated": 3000,
-    "overall_evaluation_duration_seconds": 0.59,
+    "overall_evaluation_duration_seconds": 1.55,
     "anomaly_rejection_threshold_percent": 55.0,
     "evaluated_on_heldout_split_only": true,
     "is_simulated_day_partition": true,
@@ -17,7 +17,7 @@
             "false_positive_rate": 0.02,
             "attack_detection_rate": 1.0,
             "anomaly_rejections": 1,
-            "inference_latency_ms": 0.101,
+            "inference_latency_ms": 0.319,
             "attack_types_present": []
         },
         "Tuesday": {
@@ -30,7 +30,7 @@
             "false_positive_rate": 0.0233,
             "attack_detection_rate": 1.0,
             "anomaly_rejections": 2,
-            "inference_latency_ms": 0.093,
+            "inference_latency_ms": 0.288,
             "attack_types_present": [
                 "FTP-Patator",
                 "SSH-Patator"
@@ -46,7 +46,7 @@
             "false_positive_rate": 0.03,
             "attack_detection_rate": 1.0,
             "anomaly_rejections": 0,
-            "inference_latency_ms": 0.087,
+            "inference_latency_ms": 0.252,
             "attack_types_present": [
                 "DoS",
                 "Heartbleed"
@@ -62,7 +62,7 @@
             "false_positive_rate": 0.0333,
             "attack_detection_rate": 0.9867,
             "anomaly_rejections": 3,
-            "inference_latency_ms": 0.088,
+            "inference_latency_ms": 0.304,
             "attack_types_present": [
                 "Web Attack",
                 "Infiltration"
@@ -78,7 +78,7 @@
             "false_positive_rate": 0.0367,
             "attack_detection_rate": 0.9987,
             "anomaly_rejections": 5,
-            "inference_latency_ms": 0.093,
+            "inference_latency_ms": 0.184,
             "attack_types_present": [
                 "DDoS",
                 "PortScan",

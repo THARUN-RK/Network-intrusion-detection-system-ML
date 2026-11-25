@@ -48,3 +48,5 @@ logs/*.db
 # OS Generated
 .DS_Store
 Thumbs.db
+
+.streamlit/
