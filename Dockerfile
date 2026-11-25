@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for NIDS Backend and Streamlit Dashboard
+# Multi-stage Dockerfile for NIDS Backend and Web Console
 FROM python:3.12-slim
 
 # Set working directory
@@ -19,8 +19,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy project files
 COPY . .
 
-# Expose FastAPI (8000) and Streamlit (8501) ports
-EXPOSE 8000 8501
+# Expose FastAPI port
+EXPOSE 8000
 
-# Default command: run FastAPI backend
+# Default command: run FastAPI backend & web console
 CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]

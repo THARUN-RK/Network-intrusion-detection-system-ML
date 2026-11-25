@@ -3,7 +3,9 @@ Network Intrusion Detection System (NIDS) & Security Operations Center (SOC) API
 """
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 import database
@@ -45,6 +47,16 @@ app.include_router(soc_routes.router)
 app.include_router(prediction.router)
 app.include_router(analytics.router)
 app.include_router(history.router)
+
+INDEX_HTML_PATH = Path(__file__).resolve().parent.parent.parent / "frontend" / "index.html"
+
+
+@app.get("/", response_class=HTMLResponse, tags=["Web Dashboard"], include_in_schema=False)
+def serve_soc_dashboard():
+    """Serves the fast, lightweight NIDS Security Operations Center web dashboard."""
+    if INDEX_HTML_PATH.exists():
+        return FileResponse(INDEX_HTML_PATH)
+    return HTMLResponse("<h1>NIDS SOC API Active</h1><p>Visit <a href='/docs'>/docs</a> for API documentation.</p>")
 
 
 # ==============================================================================

@@ -3,7 +3,7 @@ Unit tests for FastAPI endpoints, services, authentication, and SOC management.
 """
 
 import pytest
-from backend.app.main import health_check, get_model_information
+from backend.app.main import health_check, get_model_information, serve_soc_dashboard
 from backend.app.routes.prediction import predict_single, predict_batch
 from backend.app.routes.analytics import get_overview_analytics, get_attack_distribution
 from backend.app.routes.history import get_history, get_alerts
@@ -18,6 +18,13 @@ def test_health_check_function():
     assert result["status"] == "healthy"
     assert result["model_loaded"] is True
     assert result["version"] in ["1.0.0", "2.0.0"]
+
+
+def test_root_dashboard_endpoint():
+    result = serve_soc_dashboard()
+    assert result is not None
+    # Verify FileResponse or HTMLResponse
+    assert hasattr(result, "status_code") or hasattr(result, "path")
 
 
 def test_model_info_function():

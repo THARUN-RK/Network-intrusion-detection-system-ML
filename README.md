@@ -5,11 +5,11 @@
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
 [![Scikit-Learn](https://img.shields.io/badge/ML-Scikit--Learn-orange.svg)](https://scikit-learn.org/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-green.svg)](https://fastapi.tiangolo.com/)
-[![Streamlit](https://img.shields.io/badge/SOC%20Console-Streamlit-red.svg)](https://streamlit.io/)
+[![Web Console](https://img.shields.io/badge/SOC%20Console-Web%20Dashboard-blue.svg)](/)
 [![Docker](https://img.shields.io/badge/Container-Docker%20Compose-2496ED.svg)](https://www.docker.com/)
 [![Tests](https://img.shields.io/badge/Tests-23%20Passed-brightgreen.svg)](tests/)
 
-An enterprise-grade, full-stack **Network Intrusion Detection System (NIDS)** and interactive **Security Operations Center (SOC)**. Built with **Multiclass Support Vector Machine (RBF Kernel)**, **FastAPI REST API**, **WebSockets**, **SQLAlchemy (SQLite + PostgreSQL)**, **Scapy Live Packet Capture**, **ReportLab Executive PDF Generator**, and an 8-console **Streamlit SOC Dashboard**. 
+An enterprise-grade, full-stack **Network Intrusion Detection System (NIDS)** and interactive **Security Operations Center (SOC)**. Built with **Multiclass Support Vector Machine (RBF Kernel)**, **FastAPI REST API**, **WebSockets**, **SQLAlchemy (SQLite + PostgreSQL)**, **Scapy Live Packet Capture**, **ReportLab Executive PDF Generator**, and an ultra-fast **Web SOC Dashboard**. 
 
 Trained and evaluated on the Canadian Institute for Cybersecurity **CIC-IDS2017** dataset across 71 network flow features, with zero-day anomaly rejection and day-wise temporal cross-validation.
 
@@ -46,7 +46,7 @@ Trained and evaluated on the Canadian Institute for Cybersecurity **CIC-IDS2017*
 ## 🚀 Key Features
 
 - **🧠 Multiclass SVM with RBF Kernel:** 98.40% accuracy, 97.59% macro F1-score, and 99.43% macro PR-AUC on the 3,000-flow held-out benchmark split (`0.097 ms/flow`), with explicit natural-distribution (80% benign) evaluation (`92.93%` macro F1).
-- **🛡️ 8-Console Streamlit SOC Dashboard:** Real-time KPI monitoring, threat analytics, manual flow triage, batch CSV triage, IP threat profiling, incident response ticketing, temporal evaluation, and Scapy packet capture.
+- **🛡️ Real-Time Web SOC Dashboard:** Fast, lightweight operations console with live KPI monitoring, threat analytics, interactive flow prediction sandbox, and IP threat profiling.
 - **⚡ FastAPI REST & WebSocket Backend:** Asynchronous `/ws/alerts` socket streaming live detections directly to monitoring consoles.
 - **🔐 JWT Authentication & RBAC:** Secure PBKDF2/bcrypt password hashing with role-based access control (`admin`, `analyst`).
 - **🌐 IP Reputation & Edge Firewall Toggles:** Automatic reputation scoring (0.0–100.0) tracking host behavior, with one-click edge IP blocking/unblocking.
@@ -101,7 +101,7 @@ Trained and evaluated on the Canadian Institute for Cybersecurity **CIC-IDS2017*
                                                  │                                  │
                                                  └──────────────────┬───────────────┘
                                                                     ▼
-                                                    [ Streamlit SOC Dashboard ]
+                                                    [ Web SOC Dashboard & API ]
                                                      (8 Specialized Consoles)
 ```
 
@@ -109,7 +109,7 @@ Trained and evaluated on the Canadian Institute for Cybersecurity **CIC-IDS2017*
 
 ## 🛡️ SOC Operational Consoles
 
-The Streamlit front-end provides 8 dedicated operations consoles:
+The Web SOC Console provides real-time operations capabilities:
 
 | Console | Capabilities |
 | :--- | :--- |
@@ -250,30 +250,27 @@ pip install -r requirements.txt
 python app.py
 ```
 
-**Option B — Independent Services:**
+**Option B — Independent Service:**
 ```bash
-# Terminal 1: Launch FastAPI REST & WebSocket Backend
+# Launch FastAPI REST, WebSocket Backend & Web Console
 uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
-
-# Terminal 2: Launch Streamlit SOC Dashboard
-streamlit run frontend/dashboard.py --server.port 8501
 ```
 
-Access the dashboard at `http://localhost:8501` and API docs at `http://localhost:8000/docs`.
+Access the Web SOC Dashboard at `http://localhost:8000` and interactive Swagger API docs at `http://localhost:8000/docs`.
 
 ---
 
 ## 🐳 Docker Container Deployment
 
-Run the complete multi-container stack with PostgreSQL, FastAPI, and Streamlit:
+Run the complete multi-container stack with PostgreSQL and FastAPI:
 
 ```bash
 docker-compose up --build -d
 ```
 
-- **Streamlit SOC Dashboard:** `http://localhost:8501`
-- **FastAPI API & Docs:** `http://localhost:8000/docs`
-- **PostgreSQL Database:** `localhost:5432` (`nids_db`)
+- **Web SOC Dashboard & API:** `http://localhost:8000`
+- **Swagger Documentation:** `http://localhost:8000/docs`
+- **PostgreSQL Database:** `localhost:5432` (`nids_soc`)
 
 ---
 
@@ -407,18 +404,4 @@ pytest -v
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
 
----
 
-## ⚠️ Known Issues & Platform Workarounds
-
-### PyArrow / NumPy Compatibility
-In modern Streamlit versions, `numpy>=2.0.0` is required for pyarrow table serialization.
-**Fix applied:** `requirements.txt` specifies `numpy>=2.0.0,<3.0.0` and all tables are passed as plain DataFrames with formatted string columns.
-
-### Streamlit Credentials Permission (Windows Sandbox)
-On restricted Windows environments, Streamlit cannot write to `C:\Users\<user>\.streamlit\credentials.toml`.
-**Workaround:** Set `STREAMLIT_HOME` to a writable directory before launching:
-```powershell
-$env:STREAMLIT_HOME = ".\.streamlit"
-streamlit run frontend/dashboard.py --server.headless true
-```

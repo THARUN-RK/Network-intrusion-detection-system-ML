@@ -15,7 +15,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # FastAPI REST & WebSocket Backend
+  # FastAPI REST & WebSocket Backend + Web Dashboard
   nids-backend:
     build: .
     container_name: nids_fastapi_backend
@@ -32,20 +32,6 @@ services:
       - JWT_SECRET_KEY=nids-production-secret-key-2026
     depends_on:
       - nids-postgres
-
-  # Streamlit SOC Frontend Dashboard
-  nids-dashboard:
-    build: .
-    container_name: nids_streamlit_dashboard
-    restart: unless-stopped
-    ports:
-      - "8501:8501"
-    command: streamlit run frontend/dashboard.py --server.port=8501 --server.address=0.0.0.0
-    depends_on:
-      - nids-backend
-    environment:
-      - NIDS_API_URL=http://nids-backend:8000
-      - DATABASE_URL=postgresql://soc_admin:SocSecretPassword2026!@nids-postgres:5432/nids_soc
 
 volumes:
   postgres_data:

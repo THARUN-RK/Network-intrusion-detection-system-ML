@@ -25,9 +25,6 @@ sqlalchemy>=2.0.0
 # PDF Report Generation
 reportlab>=4.1.0
 
-# Frontend SOC Dashboard
-streamlit==1.67.0
-
 # Network Packet Capture & Analysis
 scapy>=2.5.0
 
