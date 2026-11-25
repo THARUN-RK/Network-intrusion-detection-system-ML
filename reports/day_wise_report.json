@@ -1,8 +1,8 @@
 {
-    "evaluation_timestamp": "2026-11-25 03:06:09 UTC",
+    "evaluation_timestamp": "2026-11-25 03:42:07 UTC",
     "total_days_evaluated": 5,
     "total_flows_evaluated": 15000,
-    "overall_evaluation_duration_seconds": 4.67,
+    "overall_evaluation_duration_seconds": 7.0,
     "anomaly_rejection_threshold_percent": 55.0,
     "days": {
         "Monday": {
@@ -15,7 +15,7 @@
             "false_positive_rate": 0.0213,
             "attack_detection_rate": 1.0,
             "anomaly_rejections": 6,
-            "inference_latency_ms": 0.156,
+            "inference_latency_ms": 0.24,
             "attack_types_present": []
         },
         "Tuesday": {
@@ -28,7 +28,7 @@
             "false_positive_rate": 0.026,
             "attack_detection_rate": 0.9989,
             "anomaly_rejections": 14,
-            "inference_latency_ms": 0.133,
+            "inference_latency_ms": 0.176,
             "attack_types_present": [
                 "FTP-Patator",
                 "SSH-Patator"
@@ -44,7 +44,7 @@
             "false_positive_rate": 0.0193,
             "attack_detection_rate": 0.9995,
             "anomaly_rejections": 11,
-            "inference_latency_ms": 0.232,
+            "inference_latency_ms": 0.2,
             "attack_types_present": [
                 "DoS",
                 "Heartbleed"
@@ -60,7 +60,7 @@
             "false_positive_rate": 0.0267,
             "attack_detection_rate": 0.9867,
             "anomaly_rejections": 21,
-            "inference_latency_ms": 0.141,
+            "inference_latency_ms": 0.184,
             "attack_types_present": [
                 "Web Attack",
                 "Infiltration"
@@ -76,7 +76,7 @@
             "false_positive_rate": 0.0253,
             "attack_detection_rate": 0.999,
             "anomaly_rejections": 14,
-            "inference_latency_ms": 0.128,
+            "inference_latency_ms": 0.183,
             "attack_types_present": [
                 "DDoS",
                 "PortScan",
