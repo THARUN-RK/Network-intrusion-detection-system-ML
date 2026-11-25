@@ -328,3 +328,26 @@ tests/test_preprocessing.py::test_feature_pipeline_fit_transform PASSED  [100%]
 
 ## 📜 License
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+
+---
+
+## ⚠️ Known Issues & Platform Workarounds
+
+### PyArrow / NumPy Version Mismatch
+Streamlit's default Arrow-backed DataFrame rendering requires `pyarrow`, which expects **NumPy 2.0+**. If your environment ships an older NumPy (e.g. 1.26.x), the dashboard will crash with:
+```
+ImportError: pyarrow requires NumPy 2.0 or newer, found 1.26.4
+```
+**Fix applied:** `requirements.txt` now pins `numpy>=2.0.0`. As a defensive fallback, the dashboard also disables Arrow conversion:
+```python
+st.set_option('dataframe.showArrow', False)
+```
+
+### Streamlit Credentials Permission (Windows Sandbox)
+On restricted Windows environments, Streamlit cannot write to `C:\Users\<user>\.streamlit\credentials.toml`.
+**Workaround:** Set `STREAMLIT_HOME` to a writable directory before launching:
+```powershell
+$env:STREAMLIT_HOME = ".\.streamlit"
+streamlit run frontend/dashboard.py --server.headless true
+```

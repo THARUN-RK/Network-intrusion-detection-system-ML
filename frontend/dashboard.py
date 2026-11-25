@@ -24,6 +24,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+st.set_option('dataframe.showArrow', False)
 
 # Configure Streamlit Page
 st.set_page_config(
@@ -552,7 +553,10 @@ elif page == "Model Performance & Metrics":
             
             st.markdown("### 🎯 Per-Class Precision, Recall & Error Rates")
             df_per = pd.DataFrame(eval_data["per_class_metrics"]).T
-            st.dataframe(df_per.style.format("{:.3f}", subset=["precision", "recall", "f1_score", "false_positive_rate", "false_negative_rate"]), use_container_width=True)
+            fmt_cols = [c for c in ["precision", "recall", "f1_score", "false_positive_rate", "false_negative_rate"] if c in df_per.columns]
+            if fmt_cols:
+                df_per[fmt_cols] = df_per[fmt_cols].apply(lambda x: x.map("{:.3f}".format))
+            st.dataframe(df_per, use_container_width=True)
             
             col_cm1, col_cm2 = st.columns(2)
             with col_cm1:
