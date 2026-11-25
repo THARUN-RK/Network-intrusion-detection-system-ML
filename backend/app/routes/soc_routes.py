@@ -4,11 +4,13 @@ Includes Incident Investigation, IP Monitoring, Alert Triage, and PDF/CSV Report
 """
 
 import io
-from datetime import datetime
+import json
+from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Depends, Response, Query
 from fastapi.responses import StreamingResponse
 
+import config
 import database
 from backend.app.schemas import (
     IncidentCreateRequest,
@@ -99,12 +101,33 @@ def toggle_ip_blocking(request: IPBlockRequest):
 # ==============================================================================
 
 @router.patch("/alerts/{alert_id}/status")
-def set_alert_status(alert_id: int, status: str = Query(..., regex="^(NEW|INVESTIGATING|RESOLVED|FALSE_POSITIVE)$")):
+def set_alert_status(alert_id: int, status: str = Query(..., pattern="^(NEW|INVESTIGATING|RESOLVED|FALSE_POSITIVE)$")):
     """Updates the triage status of an individual security alert."""
     success = database.update_alert_status(alert_id=alert_id, new_status=status)
     if not success:
         raise HTTPException(status_code=404, detail="Alert not found")
     return {"message": f"Alert {alert_id} status updated to {status}", "alert_id": alert_id, "status": status}
+
+
+# ==============================================================================
+# DAY-WISE TEMPORAL CROSS-EVALUATION
+# ==============================================================================
+
+@router.get("/day-wise-evaluation")
+def get_day_wise_evaluation():
+    """Returns day-wise temporal cross-testing, FPR, and anomaly rejection metrics."""
+    json_path = config.REPORTS_DIR / "day_wise_report.json"
+    if json_path.exists():
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            pass
+    try:
+        import day_wise_evaluation
+        return day_wise_evaluation.evaluate_day_wise()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Day-wise evaluation error: {str(e)}")
 
 
 # ==============================================================================
@@ -153,7 +176,7 @@ def generate_pdf_report():
         
         # Header
         elements.append(Paragraph("🛡️ NETWORK SECURITY OPERATIONS CENTER (SOC)", title_style))
-        elements.append(Paragraph(f"Executive Threat & Audit Report — Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}", subtitle_style))
+        elements.append(Paragraph(f"Executive Threat & Audit Report — Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}", subtitle_style))
         elements.append(Spacer(1, 15))
         
         # Overview Stats
@@ -240,7 +263,7 @@ def generate_pdf_report():
         return StreamingResponse(
             buffer,
             media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename=nids_soc_report_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.pdf"}
+            headers={"Content-Disposition": f"attachment; filename=nids_soc_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.pdf"}
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"PDF generation error: {str(e)}")

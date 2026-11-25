@@ -1,0 +1,87 @@
+{
+    "evaluation_timestamp": "2026-11-25 03:06:09 UTC",
+    "total_days_evaluated": 5,
+    "total_flows_evaluated": 15000,
+    "overall_evaluation_duration_seconds": 4.67,
+    "anomaly_rejection_threshold_percent": 55.0,
+    "days": {
+        "Monday": {
+            "description": "Baseline Normal Traffic (No Attacks)",
+            "total_records": 1500,
+            "attack_records": 0,
+            "benign_records": 1500,
+            "accuracy": 0.9787,
+            "macro_f1": 0.2473,
+            "false_positive_rate": 0.0213,
+            "attack_detection_rate": 1.0,
+            "anomaly_rejections": 6,
+            "inference_latency_ms": 0.156,
+            "attack_types_present": []
+        },
+        "Tuesday": {
+            "description": "Brute Force Authentication Attacks",
+            "total_records": 2400,
+            "attack_records": 900,
+            "benign_records": 1500,
+            "accuracy": 0.9825,
+            "macro_f1": 0.5949,
+            "false_positive_rate": 0.026,
+            "attack_detection_rate": 0.9989,
+            "anomaly_rejections": 14,
+            "inference_latency_ms": 0.133,
+            "attack_types_present": [
+                "FTP-Patator",
+                "SSH-Patator"
+            ]
+        },
+        "Wednesday": {
+            "description": "Volumetric Denial of Service & Heartbleed",
+            "total_records": 3450,
+            "attack_records": 1950,
+            "benign_records": 1500,
+            "accuracy": 0.9913,
+            "macro_f1": 0.4978,
+            "false_positive_rate": 0.0193,
+            "attack_detection_rate": 0.9995,
+            "anomaly_rejections": 11,
+            "inference_latency_ms": 0.232,
+            "attack_types_present": [
+                "DoS",
+                "Heartbleed"
+            ]
+        },
+        "Thursday": {
+            "description": "Web Exploitation & Infiltration",
+            "total_records": 2250,
+            "attack_records": 750,
+            "benign_records": 1500,
+            "accuracy": 0.9742,
+            "macro_f1": 0.4912,
+            "false_positive_rate": 0.0267,
+            "attack_detection_rate": 0.9867,
+            "anomaly_rejections": 21,
+            "inference_latency_ms": 0.141,
+            "attack_types_present": [
+                "Web Attack",
+                "Infiltration"
+            ]
+        },
+        "Friday": {
+            "description": "Distributed Denial of Service, Botnet & PortScan",
+            "total_records": 5400,
+            "attack_records": 3900,
+            "benign_records": 1500,
+            "accuracy": 0.9919,
+            "macro_f1": 0.5662,
+            "false_positive_rate": 0.0253,
+            "attack_detection_rate": 0.999,
+            "anomaly_rejections": 14,
+            "inference_latency_ms": 0.128,
+            "attack_types_present": [
+                "DDoS",
+                "PortScan",
+                "Bot"
+            ]
+        }
+    }
+}

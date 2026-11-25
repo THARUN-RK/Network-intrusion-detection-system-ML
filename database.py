@@ -12,9 +12,13 @@ Maintains models for:
 import os
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Any, Optional
+
+def utc_now():
+    """Returns timezone-aware UTC datetime."""
+    return datetime.now(timezone.utc)
 
 from sqlalchemy import (
     create_engine, Column, Integer, String, Float, DateTime, Text, Boolean, ForeignKey, Index, desc, func
@@ -57,7 +61,7 @@ class PredictionModel(Base):
     security_status = Column(String(20), nullable=False, index=True)  # BENIGN, ATTACK, ANOMALY
     severity = Column(String(20), default="LOW", index=True)          # LOW, MEDIUM, HIGH, CRITICAL
     is_anomaly = Column(Boolean, default=False)
-    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+    timestamp = Column(DateTime, default=utc_now, index=True)
     
     # IP & Flow Tracking
     source_ip = Column(String(45), default="192.168.1.100", index=True)
@@ -82,7 +86,7 @@ class SecurityAlertModel(Base):
     status = Column(String(30), default="NEW", index=True)            # NEW, INVESTIGATING, RESOLVED, FALSE_POSITIVE
     source_ip = Column(String(45), default="192.168.1.100")
     destination_ip = Column(String(45), default="10.0.0.1")
-    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+    timestamp = Column(DateTime, default=utc_now, index=True)
     description = Column(Text)
 
     prediction = relationship("PredictionModel", back_populates="alerts")
@@ -98,7 +102,7 @@ class UserModel(Base):
     role = Column(String(20), default="analyst", nullable=False)      # admin, analyst
     full_name = Column(String(100), default="")
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
 
 
 class IncidentModel(Base):
@@ -113,8 +117,8 @@ class IncidentModel(Base):
     assigned_to = Column(String(50), default="Unassigned")
     source_ip = Column(String(45))
     target_ip = Column(String(45))
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now, index=True)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
     investigator_notes = Column(Text, default="")
 
 
@@ -129,7 +133,7 @@ class IPReputationModel(Base):
     threat_level = Column(String(20), default="SAFE", index=True)     # SAFE, SUSPICIOUS, MALICIOUS
     is_blocked = Column(Boolean, default=False, index=True)
     country = Column(String(50), default="Unknown")
-    last_seen = Column(DateTime, default=datetime.utcnow)
+    last_seen = Column(DateTime, default=utc_now)
 
 
 # ==============================================================================
@@ -268,7 +272,7 @@ def update_ip_profile(session, ip: str, is_attack: bool) -> None:
         else:
             profile.reputation_score = min(100.0, profile.reputation_score + 0.5)
             
-        profile.last_seen = datetime.utcnow()
+        profile.last_seen = utc_now()
         if profile.reputation_score < 40.0:
             profile.threat_level = "MALICIOUS"
         elif profile.reputation_score < 75.0:
@@ -294,7 +298,7 @@ def save_prediction(
     """Saves classification result, tracks IP reputation, and creates alerts."""
     session = SessionLocal()
     try:
-        now = datetime.utcnow()
+        now = utc_now()
         src_ip = source_ip or "192.168.1.100"
         dst_ip = destination_ip or "10.0.0.1"
         severity = map_severity(predicted_category, confidence, is_anomaly)
@@ -357,7 +361,7 @@ def save_predictions_batch(
         return 0
     session = SessionLocal()
     try:
-        now = datetime.utcnow()
+        now = utc_now()
         for r in records:
             cat = r.get("predicted_category", "BENIGN")
             conf = float(r.get("confidence", 0.0))
@@ -606,7 +610,7 @@ def create_incident(
     """Creates a new formal incident report for investigation."""
     session = SessionLocal()
     try:
-        inc_code = f"INC-{int(datetime.utcnow().timestamp())}"
+        inc_code = f"INC-{int(utc_now().timestamp())}"
         inc = IncidentModel(
             incident_code=inc_code,
             title=title,
@@ -616,7 +620,7 @@ def create_incident(
             assigned_to=assigned_to,
             source_ip=source_ip,
             target_ip=target_ip,
-            created_at=datetime.utcnow()
+            created_at=utc_now()
         )
         session.add(inc)
         session.commit()
@@ -668,8 +672,8 @@ def update_incident_status(incident_code: str, new_status: str, notes: Optional[
         if inc:
             inc.status = new_status
             if notes:
-                inc.investigator_notes = f"{inc.investigator_notes}\n[{datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}] {notes}".strip()
-            inc.updated_at = datetime.utcnow()
+                inc.investigator_notes = f"{inc.investigator_notes}\n[{utc_now().strftime('%Y-%m-%d %H:%M:%S')}] {notes}".strip()
+            inc.updated_at = utc_now()
             session.commit()
             return True
         return False
