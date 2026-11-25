@@ -1,0 +1,3813 @@
+{
+    "seed": 42,
+    "split_checks": {
+        "train_rows": 10500,
+        "test_rows": 4500,
+        "index_overlap": 0,
+        "feature_hash_overlap": 0
+    },
+    "audit_summary": {
+        "dataset_files_on_disk": [
+            "CICIDS2017_Benchmark_Sample.csv"
+        ],
+        "is_synthetic_benchmark_dataset": true,
+        "dataset_class_counts": {
+            "BENIGN": 7500,
+            "DoS": 1800,
+            "DDoS": 1800,
+            "PortScan": 1500,
+            "Bot": 600,
+            "Web Attack": 450,
+            "FTP-Patator": 450,
+            "SSH-Patator": 450,
+            "Infiltration": 300,
+            "Heartbleed": 150
+        },
+        "cleaning_audit": {
+            "raw_rows": 15000,
+            "inf_nan_rows_dropped": 0,
+            "inf_nan_rows_found": 0,
+            "exact_row_label_duplicates_found": 0,
+            "feature_duplicates_dropped": 0,
+            "conflicting_label_duplicates": 0,
+            "clean_rows": 15000
+        },
+        "legacy_evaluation_leakage": {
+            "legacy_train_size": 6400,
+            "legacy_eval_size": 2000,
+            "train_rows_leaked_into_eval": 869,
+            "train_overlap_percent": 43.45,
+            "heldout_test_rows_in_eval": 205,
+            "eval_2000_class_counts": {
+                "BENIGN": 1013,
+                "DoS": 244,
+                "DDoS": 223,
+                "PortScan": 194,
+                "Bot": 93,
+                "Web Attack": 61,
+                "FTP-Patator": 59,
+                "SSH-Patator": 57,
+                "Infiltration": 36,
+                "Heartbleed": 20
+            },
+            "legacy_report_total_test_samples": 2000,
+            "legacy_report_heartbleed_support": 20,
+            "legacy_report_infiltration_support": 36,
+            "day_wise_overlap_with_train_rows": 6400,
+            "day_wise_total_evaluated": 15000,
+            "explanation_heartbleed_20_infiltration_36": "Real CIC-IDS2017 contains 11 Heartbleed and 36 Infiltration flows across ~2.83M records, with ~80.3% BENIGN. However, this repository only contains the synthetically generated CICIDS2017_Benchmark_Sample.csv (15,000 rows: 50% BENIGN, 150 Heartbleed [1%], 300 Infiltration [2%]). Legacy evaluation.py sampled n=2000 randomly from all 15,000 rows instead of the held-out split, producing exact counts Heartbleed=20 and Infiltration=36 while leaking 869/2000 (43.45%) training rows."
+        },
+        "destination_port_shortcut_audit": {
+            "port_only_decision_tree_accuracy": 0.6873,
+            "port_only_decision_tree_macro_f1": 0.4825,
+            "sample_unique_ports_by_class": {
+                "BENIGN": [
+                    53,
+                    80,
+                    443,
+                    8080
+                ],
+                "Bot": [
+                    4444,
+                    6667,
+                    8080
+                ],
+                "DDoS": [
+                    53,
+                    80,
+                    8080
+                ],
+                "DoS": [
+                    80,
+                    443
+                ],
+                "FTP-Patator": [
+                    21
+                ],
+                "Heartbleed": [
+                    443
+                ],
+                "Infiltration": [
+                    22,
+                    443,
+                    8443
+                ],
+                "PortScan": [
+                    3367,
+                    7745,
+                    9159,
+                    21290,
+                    23736,
+                    36401,
+                    50625,
+                    51821,
+                    55661,
+                    60661
+                ],
+                "SSH-Patator": [
+                    22
+                ],
+                "Web Attack": [
+                    80,
+                    443,
+                    8080
+                ]
+            }
+        }
+    },
+    "comparison_summary": {
+        "evaluation_timestamp": "2026-11-25 04:38:22 UTC",
+        "random_state": 42,
+        "cv_folds": 5,
+        "train_samples": 10500,
+        "balanced_test_samples": 450,
+        "natural_test_metadata": {
+            "benign_ratio": 0.8001,
+            "downsampled_attacks": true,
+            "total_rows": 2812
+        },
+        "classes": [
+            "BENIGN",
+            "Bot",
+            "DDoS",
+            "DoS",
+            "FTP-Patator",
+            "Heartbleed",
+            "Infiltration",
+            "PortScan",
+            "SSH-Patator",
+            "Web Attack"
+        ],
+        "models": {
+            "SVM_RBF_ClassWeight": {
+                "cv_5fold": {
+                    "accuracy_mean": 0.9838,
+                    "accuracy_std": 0.0025,
+                    "macro_f1_mean": 0.974,
+                    "macro_f1_std": 0.0038,
+                    "weighted_f1_mean": 0.9843,
+                    "weighted_f1_std": 0.0023,
+                    "macro_pr_auc_mean": 0.9933,
+                    "macro_pr_auc_std": 0.0013,
+                    "fold_fit_time_mean_s": 2.137
+                },
+                "full_train_time_seconds": 2.983,
+                "test_balanced": {
+                    "n_samples": 450,
+                    "accuracy": 0.9867,
+                    "macro_precision": 0.9869,
+                    "macro_recall": 0.9867,
+                    "macro_f1": 0.9866,
+                    "weighted_f1": 0.9866,
+                    "macro_pr_auc": 0.9986,
+                    "weighted_pr_auc": 0.9986,
+                    "mean_fpr": 0.0015,
+                    "mean_fnr": 0.0133,
+                    "binary_benign_fpr": 0.0,
+                    "binary_attack_recall": 0.9951,
+                    "inference_time_ms_total": 44.85,
+                    "inference_latency_ms_per_flow": 0.0997,
+                    "per_class": {
+                        "BENIGN": {
+                            "precision": 0.9574,
+                            "recall": 1.0,
+                            "f1_score": 0.9783,
+                            "fpr": 0.0049,
+                            "fnr": 0.0,
+                            "pr_auc": 0.999,
+                            "support": 45
+                        },
+                        "Bot": {
+                            "precision": 1.0,
+                            "recall": 0.9333,
+                            "f1_score": 0.9655,
+                            "fpr": 0.0,
+                            "fnr": 0.0667,
+                            "pr_auc": 0.998,
+                            "support": 45
+                        },
+                        "DDoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "DoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "FTP-Patator": {
+                            "precision": 0.9783,
+                            "recall": 1.0,
+                            "f1_score": 0.989,
+                            "fpr": 0.0025,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "Heartbleed": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "Infiltration": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "PortScan": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "SSH-Patator": {
+                            "precision": 0.9778,
+                            "recall": 0.9778,
+                            "f1_score": 0.9778,
+                            "fpr": 0.0025,
+                            "fnr": 0.0222,
+                            "pr_auc": 0.998,
+                            "support": 45
+                        },
+                        "Web Attack": {
+                            "precision": 0.9556,
+                            "recall": 0.9556,
+                            "f1_score": 0.9556,
+                            "fpr": 0.0049,
+                            "fnr": 0.0444,
+                            "pr_auc": 0.991,
+                            "support": 45
+                        }
+                    },
+                    "confusion_matrix": [
+                        [
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            1,
+                            42,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        [
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            44,
+                            1
+                        ],
+                        [
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            43
+                        ]
+                    ]
+                },
+                "test_natural": {
+                    "n_samples": 2812,
+                    "accuracy": 0.9772,
+                    "macro_precision": 0.8938,
+                    "macro_recall": 0.9848,
+                    "macro_f1": 0.9293,
+                    "weighted_f1": 0.9798,
+                    "macro_pr_auc": 0.9792,
+                    "weighted_pr_auc": 0.9971,
+                    "mean_fpr": 0.0024,
+                    "mean_fnr": 0.0152,
+                    "binary_benign_fpr": 0.0262,
+                    "binary_attack_recall": 0.9982,
+                    "inference_time_ms_total": 257.48,
+                    "inference_latency_ms_per_flow": 0.0916,
+                    "per_class": {
+                        "BENIGN": {
+                            "precision": 0.9995,
+                            "recall": 0.9738,
+                            "f1_score": 0.9865,
+                            "fpr": 0.0018,
+                            "fnr": 0.0262,
+                            "pr_auc": 0.9999,
+                            "support": 2250
+                        },
+                        "Bot": {
+                            "precision": 0.6,
+                            "recall": 0.9333,
+                            "f1_score": 0.7304,
+                            "fpr": 0.0101,
+                            "fnr": 0.0667,
+                            "pr_auc": 0.923,
+                            "support": 45
+                        },
+                        "DDoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 135
+                        },
+                        "DoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 135
+                        },
+                        "FTP-Patator": {
+                            "precision": 0.8718,
+                            "recall": 1.0,
+                            "f1_score": 0.9315,
+                            "fpr": 0.0018,
+                            "fnr": 0.0,
+                            "pr_auc": 0.9186,
+                            "support": 34
+                        },
+                        "Heartbleed": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 11
+                        },
+                        "Infiltration": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 22
+                        },
+                        "PortScan": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 112
+                        },
+                        "SSH-Patator": {
+                            "precision": 0.9167,
+                            "recall": 0.9706,
+                            "f1_score": 0.9429,
+                            "fpr": 0.0011,
+                            "fnr": 0.0294,
+                            "pr_auc": 0.9949,
+                            "support": 34
+                        },
+                        "Web Attack": {
+                            "precision": 0.55,
+                            "recall": 0.9706,
+                            "f1_score": 0.7021,
+                            "fpr": 0.0097,
+                            "fnr": 0.0294,
+                            "pr_auc": 0.9561,
+                            "support": 34
+                        }
+                    },
+                    "confusion_matrix": [
+                        [
+                            2191,
+                            28,
+                            0,
+                            0,
+                            4,
+                            0,
+                            0,
+                            0,
+                            2,
+                            25
+                        ],
+                        [
+                            1,
+                            42,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        [
+                            0,
+                            0,
+                            135,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            135,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            34,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            11,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            22,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            112,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            33,
+                            1
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            33
+                        ]
+                    ]
+                }
+            },
+            "SVM_RBF_TrainSMOTE": {
+                "cv_5fold": {
+                    "accuracy_mean": 0.9905,
+                    "accuracy_std": 0.0023,
+                    "macro_f1_mean": 0.983,
+                    "macro_f1_std": 0.0039,
+                    "weighted_f1_mean": 0.9905,
+                    "weighted_f1_std": 0.0023,
+                    "macro_pr_auc_mean": 0.995,
+                    "macro_pr_auc_std": 0.0016,
+                    "fold_fit_time_mean_s": 2.421
+                },
+                "full_train_time_seconds": 2.988,
+                "test_balanced": {
+                    "n_samples": 450,
+                    "accuracy": 0.9756,
+                    "macro_precision": 0.9768,
+                    "macro_recall": 0.9756,
+                    "macro_f1": 0.9755,
+                    "weighted_f1": 0.9755,
+                    "macro_pr_auc": 0.9982,
+                    "weighted_pr_auc": 0.9982,
+                    "mean_fpr": 0.0027,
+                    "mean_fnr": 0.0244,
+                    "binary_benign_fpr": 0.0,
+                    "binary_attack_recall": 0.9852,
+                    "inference_time_ms_total": 41.13,
+                    "inference_latency_ms_per_flow": 0.0914,
+                    "per_class": {
+                        "BENIGN": {
+                            "precision": 0.8824,
+                            "recall": 1.0,
+                            "f1_score": 0.9375,
+                            "fpr": 0.0148,
+                            "fnr": 0.0,
+                            "pr_auc": 0.998,
+                            "support": 45
+                        },
+                        "Bot": {
+                            "precision": 0.9756,
+                            "recall": 0.8889,
+                            "f1_score": 0.9302,
+                            "fpr": 0.0025,
+                            "fnr": 0.1111,
+                            "pr_auc": 0.9956,
+                            "support": 45
+                        },
+                        "DDoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "DoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "FTP-Patator": {
+                            "precision": 0.9783,
+                            "recall": 1.0,
+                            "f1_score": 0.989,
+                            "fpr": 0.0025,
+                            "fnr": 0.0,
+                            "pr_auc": 0.9995,
+                            "support": 45
+                        },
+                        "Heartbleed": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "Infiltration": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "PortScan": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "SSH-Patator": {
+                            "precision": 0.9556,
+                            "recall": 0.9556,
+                            "f1_score": 0.9556,
+                            "fpr": 0.0049,
+                            "fnr": 0.0444,
+                            "pr_auc": 0.9976,
+                            "support": 45
+                        },
+                        "Web Attack": {
+                            "precision": 0.9762,
+                            "recall": 0.9111,
+                            "f1_score": 0.9425,
+                            "fpr": 0.0025,
+                            "fnr": 0.0889,
+                            "pr_auc": 0.991,
+                            "support": 45
+                        }
+                    },
+                    "confusion_matrix": [
+                        [
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            3,
+                            40,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            43,
+                            1
+                        ],
+                        [
+                            3,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            41
+                        ]
+                    ]
+                },
+                "test_natural": {
+                    "n_samples": 2812,
+                    "accuracy": 0.9861,
+                    "macro_precision": 0.9277,
+                    "macro_recall": 0.9729,
+                    "macro_f1": 0.9481,
+                    "weighted_f1": 0.9869,
+                    "macro_pr_auc": 0.9844,
+                    "weighted_pr_auc": 0.9978,
+                    "mean_fpr": 0.0021,
+                    "mean_fnr": 0.0271,
+                    "binary_benign_fpr": 0.0129,
+                    "binary_attack_recall": 0.9911,
+                    "inference_time_ms_total": 224.94,
+                    "inference_latency_ms_per_flow": 0.08,
+                    "per_class": {
+                        "BENIGN": {
+                            "precision": 0.9978,
+                            "recall": 0.9871,
+                            "f1_score": 0.9924,
+                            "fpr": 0.0089,
+                            "fnr": 0.0129,
+                            "pr_auc": 0.9999,
+                            "support": 2250
+                        },
+                        "Bot": {
+                            "precision": 0.6897,
+                            "recall": 0.8889,
+                            "f1_score": 0.7767,
+                            "fpr": 0.0065,
+                            "fnr": 0.1111,
+                            "pr_auc": 0.9289,
+                            "support": 45
+                        },
+                        "DDoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 135
+                        },
+                        "DoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 135
+                        },
+                        "FTP-Patator": {
+                            "precision": 0.9189,
+                            "recall": 1.0,
+                            "f1_score": 0.9577,
+                            "fpr": 0.0011,
+                            "fnr": 0.0,
+                            "pr_auc": 0.9558,
+                            "support": 34
+                        },
+                        "Heartbleed": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 11
+                        },
+                        "Infiltration": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 22
+                        },
+                        "PortScan": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 112
+                        },
+                        "SSH-Patator": {
+                            "precision": 0.9143,
+                            "recall": 0.9412,
+                            "f1_score": 0.9275,
+                            "fpr": 0.0011,
+                            "fnr": 0.0588,
+                            "pr_auc": 0.9943,
+                            "support": 34
+                        },
+                        "Web Attack": {
+                            "precision": 0.7561,
+                            "recall": 0.9118,
+                            "f1_score": 0.8267,
+                            "fpr": 0.0036,
+                            "fnr": 0.0882,
+                            "pr_auc": 0.9646,
+                            "support": 34
+                        }
+                    },
+                    "confusion_matrix": [
+                        [
+                            2221,
+                            17,
+                            0,
+                            0,
+                            2,
+                            0,
+                            0,
+                            0,
+                            1,
+                            9
+                        ],
+                        [
+                            3,
+                            40,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            135,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            135,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            34,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            11,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            22,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            112,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            32,
+                            1
+                        ],
+                        [
+                            2,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            31
+                        ]
+                    ]
+                }
+            },
+            "Random_Forest": {
+                "cv_5fold": {
+                    "accuracy_mean": 0.9935,
+                    "accuracy_std": 0.0009,
+                    "macro_f1_mean": 0.9887,
+                    "macro_f1_std": 0.0014,
+                    "weighted_f1_mean": 0.9936,
+                    "weighted_f1_std": 0.0009,
+                    "macro_pr_auc_mean": 0.9976,
+                    "macro_pr_auc_std": 0.0012,
+                    "fold_fit_time_mean_s": 1.006
+                },
+                "full_train_time_seconds": 1.208,
+                "test_balanced": {
+                    "n_samples": 450,
+                    "accuracy": 0.9978,
+                    "macro_precision": 0.9978,
+                    "macro_recall": 0.9978,
+                    "macro_f1": 0.9978,
+                    "weighted_f1": 0.9978,
+                    "macro_pr_auc": 0.9994,
+                    "weighted_pr_auc": 0.9994,
+                    "mean_fpr": 0.0002,
+                    "mean_fnr": 0.0022,
+                    "binary_benign_fpr": 0.0,
+                    "binary_attack_recall": 0.9975,
+                    "inference_time_ms_total": 34.6,
+                    "inference_latency_ms_per_flow": 0.0769,
+                    "per_class": {
+                        "BENIGN": {
+                            "precision": 0.9783,
+                            "recall": 1.0,
+                            "f1_score": 0.989,
+                            "fpr": 0.0025,
+                            "fnr": 0.0,
+                            "pr_auc": 0.9969,
+                            "support": 45
+                        },
+                        "Bot": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "DDoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "DoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "FTP-Patator": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "Heartbleed": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "Infiltration": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "PortScan": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "SSH-Patator": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "Web Attack": {
+                            "precision": 1.0,
+                            "recall": 0.9778,
+                            "f1_score": 0.9888,
+                            "fpr": 0.0,
+                            "fnr": 0.0222,
+                            "pr_auc": 0.9966,
+                            "support": 45
+                        }
+                    },
+                    "confusion_matrix": [
+                        [
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0
+                        ],
+                        [
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            44
+                        ]
+                    ]
+                },
+                "test_natural": {
+                    "n_samples": 2812,
+                    "accuracy": 0.9918,
+                    "macro_precision": 0.955,
+                    "macro_recall": 0.999,
+                    "macro_f1": 0.9742,
+                    "weighted_f1": 0.9923,
+                    "macro_pr_auc": 0.9976,
+                    "weighted_pr_auc": 0.9997,
+                    "mean_fpr": 0.0008,
+                    "mean_fnr": 0.001,
+                    "binary_benign_fpr": 0.0102,
+                    "binary_attack_recall": 1.0,
+                    "inference_time_ms_total": 47.26,
+                    "inference_latency_ms_per_flow": 0.0168,
+                    "per_class": {
+                        "BENIGN": {
+                            "precision": 1.0,
+                            "recall": 0.9898,
+                            "f1_score": 0.9949,
+                            "fpr": 0.0,
+                            "fnr": 0.0102,
+                            "pr_auc": 1.0,
+                            "support": 2250
+                        },
+                        "Bot": {
+                            "precision": 0.8036,
+                            "recall": 1.0,
+                            "f1_score": 0.8911,
+                            "fpr": 0.004,
+                            "fnr": 0.0,
+                            "pr_auc": 0.9875,
+                            "support": 45
+                        },
+                        "DDoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 135
+                        },
+                        "DoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 135
+                        },
+                        "FTP-Patator": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 34
+                        },
+                        "Heartbleed": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 11
+                        },
+                        "Infiltration": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 22
+                        },
+                        "PortScan": {
+                            "precision": 0.9912,
+                            "recall": 1.0,
+                            "f1_score": 0.9956,
+                            "fpr": 0.0004,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 112
+                        },
+                        "SSH-Patator": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 34
+                        },
+                        "Web Attack": {
+                            "precision": 0.7556,
+                            "recall": 1.0,
+                            "f1_score": 0.8608,
+                            "fpr": 0.004,
+                            "fnr": 0.0,
+                            "pr_auc": 0.9885,
+                            "support": 34
+                        }
+                    },
+                    "confusion_matrix": [
+                        [
+                            2227,
+                            11,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            11
+                        ],
+                        [
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            135,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            135,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            34,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            11,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            22,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            112,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            34,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            34
+                        ]
+                    ]
+                }
+            },
+            "XGBoost": {
+                "cv_5fold": {
+                    "accuracy_mean": 0.9969,
+                    "accuracy_std": 0.0009,
+                    "macro_f1_mean": 0.9943,
+                    "macro_f1_std": 0.0022,
+                    "weighted_f1_mean": 0.9969,
+                    "weighted_f1_std": 0.0009,
+                    "macro_pr_auc_mean": 0.9989,
+                    "macro_pr_auc_std": 0.0012,
+                    "fold_fit_time_mean_s": 3.371
+                },
+                "full_train_time_seconds": 3.857,
+                "test_balanced": {
+                    "n_samples": 450,
+                    "accuracy": 0.9978,
+                    "macro_precision": 0.9978,
+                    "macro_recall": 0.9978,
+                    "macro_f1": 0.9978,
+                    "weighted_f1": 0.9978,
+                    "macro_pr_auc": 0.9997,
+                    "weighted_pr_auc": 0.9997,
+                    "mean_fpr": 0.0002,
+                    "mean_fnr": 0.0022,
+                    "binary_benign_fpr": 0.0,
+                    "binary_attack_recall": 0.9975,
+                    "inference_time_ms_total": 6.94,
+                    "inference_latency_ms_per_flow": 0.0154,
+                    "per_class": {
+                        "BENIGN": {
+                            "precision": 0.9783,
+                            "recall": 1.0,
+                            "f1_score": 0.989,
+                            "fpr": 0.0025,
+                            "fnr": 0.0,
+                            "pr_auc": 0.999,
+                            "support": 45
+                        },
+                        "Bot": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "DDoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "DoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "FTP-Patator": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "Heartbleed": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "Infiltration": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "PortScan": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "SSH-Patator": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "Web Attack": {
+                            "precision": 1.0,
+                            "recall": 0.9778,
+                            "f1_score": 0.9888,
+                            "fpr": 0.0,
+                            "fnr": 0.0222,
+                            "pr_auc": 0.9978,
+                            "support": 45
+                        }
+                    },
+                    "confusion_matrix": [
+                        [
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0
+                        ],
+                        [
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            44
+                        ]
+                    ]
+                },
+                "test_natural": {
+                    "n_samples": 2812,
+                    "accuracy": 0.9968,
+                    "macro_precision": 0.9801,
+                    "macro_recall": 0.9996,
+                    "macro_f1": 0.9893,
+                    "weighted_f1": 0.9969,
+                    "macro_pr_auc": 0.9997,
+                    "weighted_pr_auc": 1.0,
+                    "mean_fpr": 0.0003,
+                    "mean_fnr": 0.0004,
+                    "binary_benign_fpr": 0.004,
+                    "binary_attack_recall": 1.0,
+                    "inference_time_ms_total": 20.48,
+                    "inference_latency_ms_per_flow": 0.0073,
+                    "per_class": {
+                        "BENIGN": {
+                            "precision": 1.0,
+                            "recall": 0.996,
+                            "f1_score": 0.998,
+                            "fpr": 0.0,
+                            "fnr": 0.004,
+                            "pr_auc": 1.0,
+                            "support": 2250
+                        },
+                        "Bot": {
+                            "precision": 0.8824,
+                            "recall": 1.0,
+                            "f1_score": 0.9375,
+                            "fpr": 0.0022,
+                            "fnr": 0.0,
+                            "pr_auc": 0.9991,
+                            "support": 45
+                        },
+                        "DDoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 135
+                        },
+                        "DoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 135
+                        },
+                        "FTP-Patator": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 34
+                        },
+                        "Heartbleed": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 11
+                        },
+                        "Infiltration": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 22
+                        },
+                        "PortScan": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 112
+                        },
+                        "SSH-Patator": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 34
+                        },
+                        "Web Attack": {
+                            "precision": 0.9189,
+                            "recall": 1.0,
+                            "f1_score": 0.9577,
+                            "fpr": 0.0011,
+                            "fnr": 0.0,
+                            "pr_auc": 0.9983,
+                            "support": 34
+                        }
+                    },
+                    "confusion_matrix": [
+                        [
+                            2241,
+                            6,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            3
+                        ],
+                        [
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            135,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            135,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            34,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            11,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            22,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            112,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            34,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            34
+                        ]
+                    ]
+                }
+            },
+            "Logistic_Regression": {
+                "cv_5fold": {
+                    "accuracy_mean": 0.9808,
+                    "accuracy_std": 0.0026,
+                    "macro_f1_mean": 0.9702,
+                    "macro_f1_std": 0.0039,
+                    "weighted_f1_mean": 0.9816,
+                    "weighted_f1_std": 0.0024,
+                    "macro_pr_auc_mean": 0.9913,
+                    "macro_pr_auc_std": 0.0008,
+                    "fold_fit_time_mean_s": 0.429
+                },
+                "full_train_time_seconds": 0.527,
+                "test_balanced": {
+                    "n_samples": 450,
+                    "accuracy": 0.9933,
+                    "macro_precision": 0.9934,
+                    "macro_recall": 0.9933,
+                    "macro_f1": 0.9933,
+                    "weighted_f1": 0.9933,
+                    "macro_pr_auc": 0.9978,
+                    "weighted_pr_auc": 0.9978,
+                    "mean_fpr": 0.0007,
+                    "mean_fnr": 0.0067,
+                    "binary_benign_fpr": 0.0,
+                    "binary_attack_recall": 0.9975,
+                    "inference_time_ms_total": 1.73,
+                    "inference_latency_ms_per_flow": 0.0038,
+                    "per_class": {
+                        "BENIGN": {
+                            "precision": 0.9783,
+                            "recall": 1.0,
+                            "f1_score": 0.989,
+                            "fpr": 0.0025,
+                            "fnr": 0.0,
+                            "pr_auc": 0.994,
+                            "support": 45
+                        },
+                        "Bot": {
+                            "precision": 1.0,
+                            "recall": 0.9778,
+                            "f1_score": 0.9888,
+                            "fpr": 0.0,
+                            "fnr": 0.0222,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "DDoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "DoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "FTP-Patator": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "Heartbleed": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "Infiltration": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "PortScan": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "SSH-Patator": {
+                            "precision": 0.9783,
+                            "recall": 1.0,
+                            "f1_score": 0.989,
+                            "fpr": 0.0025,
+                            "fnr": 0.0,
+                            "pr_auc": 0.9964,
+                            "support": 45
+                        },
+                        "Web Attack": {
+                            "precision": 0.9773,
+                            "recall": 0.9556,
+                            "f1_score": 0.9663,
+                            "fpr": 0.0025,
+                            "fnr": 0.0444,
+                            "pr_auc": 0.9874,
+                            "support": 45
+                        }
+                    },
+                    "confusion_matrix": [
+                        [
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            44,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        [
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0
+                        ],
+                        [
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            43
+                        ]
+                    ]
+                },
+                "test_natural": {
+                    "n_samples": 2812,
+                    "accuracy": 0.974,
+                    "macro_precision": 0.8895,
+                    "macro_recall": 0.9917,
+                    "macro_f1": 0.9273,
+                    "weighted_f1": 0.9774,
+                    "macro_pr_auc": 0.9692,
+                    "weighted_pr_auc": 0.9957,
+                    "mean_fpr": 0.0026,
+                    "mean_fnr": 0.0083,
+                    "binary_benign_fpr": 0.0316,
+                    "binary_attack_recall": 1.0,
+                    "inference_time_ms_total": 4.56,
+                    "inference_latency_ms_per_flow": 0.0016,
+                    "per_class": {
+                        "BENIGN": {
+                            "precision": 1.0,
+                            "recall": 0.9684,
+                            "f1_score": 0.984,
+                            "fpr": 0.0,
+                            "fnr": 0.0316,
+                            "pr_auc": 0.9999,
+                            "support": 2250
+                        },
+                        "Bot": {
+                            "precision": 0.55,
+                            "recall": 0.9778,
+                            "f1_score": 0.704,
+                            "fpr": 0.013,
+                            "fnr": 0.0222,
+                            "pr_auc": 0.8677,
+                            "support": 45
+                        },
+                        "DDoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 135
+                        },
+                        "DoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 135
+                        },
+                        "FTP-Patator": {
+                            "precision": 0.85,
+                            "recall": 1.0,
+                            "f1_score": 0.9189,
+                            "fpr": 0.0022,
+                            "fnr": 0.0,
+                            "pr_auc": 0.877,
+                            "support": 34
+                        },
+                        "Heartbleed": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 11
+                        },
+                        "Infiltration": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 22
+                        },
+                        "PortScan": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 112
+                        },
+                        "SSH-Patator": {
+                            "precision": 0.9714,
+                            "recall": 1.0,
+                            "f1_score": 0.9855,
+                            "fpr": 0.0004,
+                            "fnr": 0.0,
+                            "pr_auc": 0.9946,
+                            "support": 34
+                        },
+                        "Web Attack": {
+                            "precision": 0.5238,
+                            "recall": 0.9706,
+                            "f1_score": 0.6804,
+                            "fpr": 0.0108,
+                            "fnr": 0.0294,
+                            "pr_auc": 0.9524,
+                            "support": 34
+                        }
+                    },
+                    "confusion_matrix": [
+                        [
+                            2179,
+                            36,
+                            0,
+                            0,
+                            6,
+                            0,
+                            0,
+                            0,
+                            0,
+                            29
+                        ],
+                        [
+                            0,
+                            44,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        [
+                            0,
+                            0,
+                            135,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            135,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            34,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            11,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            22,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            112,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            34,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            33
+                        ]
+                    ]
+                }
+            },
+            "MLP_NeuralNet": {
+                "cv_5fold": {
+                    "accuracy_mean": 0.9892,
+                    "accuracy_std": 0.0023,
+                    "macro_f1_mean": 0.9796,
+                    "macro_f1_std": 0.0045,
+                    "weighted_f1_mean": 0.9893,
+                    "weighted_f1_std": 0.0022,
+                    "macro_pr_auc_mean": 0.994,
+                    "macro_pr_auc_std": 0.0013,
+                    "fold_fit_time_mean_s": 1.526
+                },
+                "full_train_time_seconds": 1.741,
+                "test_balanced": {
+                    "n_samples": 450,
+                    "accuracy": 0.9822,
+                    "macro_precision": 0.983,
+                    "macro_recall": 0.9822,
+                    "macro_f1": 0.9823,
+                    "weighted_f1": 0.9823,
+                    "macro_pr_auc": 0.9974,
+                    "weighted_pr_auc": 0.9974,
+                    "mean_fpr": 0.002,
+                    "mean_fnr": 0.0178,
+                    "binary_benign_fpr": 0.0,
+                    "binary_attack_recall": 0.9901,
+                    "inference_time_ms_total": 1.66,
+                    "inference_latency_ms_per_flow": 0.0037,
+                    "per_class": {
+                        "BENIGN": {
+                            "precision": 0.9184,
+                            "recall": 1.0,
+                            "f1_score": 0.9574,
+                            "fpr": 0.0099,
+                            "fnr": 0.0,
+                            "pr_auc": 0.9955,
+                            "support": 45
+                        },
+                        "Bot": {
+                            "precision": 0.9348,
+                            "recall": 0.9556,
+                            "f1_score": 0.9451,
+                            "fpr": 0.0074,
+                            "fnr": 0.0444,
+                            "pr_auc": 0.9937,
+                            "support": 45
+                        },
+                        "DDoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "DoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "FTP-Patator": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "Heartbleed": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "Infiltration": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "PortScan": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "SSH-Patator": {
+                            "precision": 0.9767,
+                            "recall": 0.9333,
+                            "f1_score": 0.9545,
+                            "fpr": 0.0025,
+                            "fnr": 0.0667,
+                            "pr_auc": 0.9965,
+                            "support": 45
+                        },
+                        "Web Attack": {
+                            "precision": 1.0,
+                            "recall": 0.9333,
+                            "f1_score": 0.9655,
+                            "fpr": 0.0,
+                            "fnr": 0.0667,
+                            "pr_auc": 0.9881,
+                            "support": 45
+                        }
+                    },
+                    "confusion_matrix": [
+                        [
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            2,
+                            43,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            3,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            42,
+                            0
+                        ],
+                        [
+                            2,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            42
+                        ]
+                    ]
+                },
+                "test_natural": {
+                    "n_samples": 2812,
+                    "accuracy": 0.9908,
+                    "macro_precision": 0.9496,
+                    "macro_recall": 0.98,
+                    "macro_f1": 0.9633,
+                    "weighted_f1": 0.9911,
+                    "macro_pr_auc": 0.9912,
+                    "weighted_pr_auc": 0.9987,
+                    "mean_fpr": 0.0014,
+                    "mean_fnr": 0.02,
+                    "binary_benign_fpr": 0.0084,
+                    "binary_attack_recall": 0.9947,
+                    "inference_time_ms_total": 6.95,
+                    "inference_latency_ms_per_flow": 0.0025,
+                    "per_class": {
+                        "BENIGN": {
+                            "precision": 0.9987,
+                            "recall": 0.9916,
+                            "f1_score": 0.9951,
+                            "fpr": 0.0053,
+                            "fnr": 0.0084,
+                            "pr_auc": 1.0,
+                            "support": 2250
+                        },
+                        "Bot": {
+                            "precision": 0.7679,
+                            "recall": 0.9556,
+                            "f1_score": 0.8515,
+                            "fpr": 0.0047,
+                            "fnr": 0.0444,
+                            "pr_auc": 0.9478,
+                            "support": 45
+                        },
+                        "DDoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 135
+                        },
+                        "DoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 135
+                        },
+                        "FTP-Patator": {
+                            "precision": 0.9189,
+                            "recall": 1.0,
+                            "f1_score": 0.9577,
+                            "fpr": 0.0011,
+                            "fnr": 0.0,
+                            "pr_auc": 0.9929,
+                            "support": 34
+                        },
+                        "Heartbleed": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 11
+                        },
+                        "Infiltration": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 22
+                        },
+                        "PortScan": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 112
+                        },
+                        "SSH-Patator": {
+                            "precision": 0.9688,
+                            "recall": 0.9118,
+                            "f1_score": 0.9394,
+                            "fpr": 0.0004,
+                            "fnr": 0.0882,
+                            "pr_auc": 0.9947,
+                            "support": 34
+                        },
+                        "Web Attack": {
+                            "precision": 0.8421,
+                            "recall": 0.9412,
+                            "f1_score": 0.8889,
+                            "fpr": 0.0022,
+                            "fnr": 0.0588,
+                            "pr_auc": 0.9765,
+                            "support": 34
+                        }
+                    },
+                    "confusion_matrix": [
+                        [
+                            2231,
+                            10,
+                            0,
+                            0,
+                            3,
+                            0,
+                            0,
+                            0,
+                            0,
+                            6
+                        ],
+                        [
+                            2,
+                            43,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            135,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            135,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            34,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            11,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            22,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            112,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            3,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            31,
+                            0
+                        ],
+                        [
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            32
+                        ]
+                    ]
+                }
+            },
+            "SVM_RBF_NoDstPort_Ablation": {
+                "cv_5fold": null,
+                "full_train_time_seconds": 3.001,
+                "test_balanced": {
+                    "n_samples": 450,
+                    "accuracy": 0.9711,
+                    "macro_precision": 0.9709,
+                    "macro_recall": 0.9711,
+                    "macro_f1": 0.9708,
+                    "weighted_f1": 0.9708,
+                    "macro_pr_auc": 0.9878,
+                    "weighted_pr_auc": 0.9878,
+                    "mean_fpr": 0.0032,
+                    "mean_fnr": 0.0289,
+                    "binary_benign_fpr": 0.0,
+                    "binary_attack_recall": 0.9951,
+                    "inference_time_ms_total": 47.67,
+                    "inference_latency_ms_per_flow": 0.1059,
+                    "per_class": {
+                        "BENIGN": {
+                            "precision": 0.9574,
+                            "recall": 1.0,
+                            "f1_score": 0.9783,
+                            "fpr": 0.0049,
+                            "fnr": 0.0,
+                            "pr_auc": 0.9985,
+                            "support": 45
+                        },
+                        "Bot": {
+                            "precision": 0.8889,
+                            "recall": 0.8889,
+                            "f1_score": 0.8889,
+                            "fpr": 0.0123,
+                            "fnr": 0.1111,
+                            "pr_auc": 0.913,
+                            "support": 45
+                        },
+                        "DDoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "DoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "FTP-Patator": {
+                            "precision": 0.9783,
+                            "recall": 1.0,
+                            "f1_score": 0.989,
+                            "fpr": 0.0025,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "Heartbleed": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "Infiltration": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "PortScan": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 45
+                        },
+                        "SSH-Patator": {
+                            "precision": 0.9286,
+                            "recall": 0.8667,
+                            "f1_score": 0.8966,
+                            "fpr": 0.0074,
+                            "fnr": 0.1333,
+                            "pr_auc": 0.9742,
+                            "support": 45
+                        },
+                        "Web Attack": {
+                            "precision": 0.9556,
+                            "recall": 0.9556,
+                            "f1_score": 0.9556,
+                            "fpr": 0.0049,
+                            "fnr": 0.0444,
+                            "pr_auc": 0.9924,
+                            "support": 45
+                        }
+                    },
+                    "confusion_matrix": [
+                        [
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            1,
+                            40,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            2,
+                            1
+                        ],
+                        [
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            45,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            5,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            39,
+                            1
+                        ],
+                        [
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            43
+                        ]
+                    ]
+                },
+                "test_natural": {
+                    "n_samples": 2812,
+                    "accuracy": 0.9687,
+                    "macro_precision": 0.8773,
+                    "macro_recall": 0.9649,
+                    "macro_f1": 0.9067,
+                    "weighted_f1": 0.9734,
+                    "macro_pr_auc": 0.9619,
+                    "weighted_pr_auc": 0.9945,
+                    "mean_fpr": 0.0033,
+                    "mean_fnr": 0.0351,
+                    "binary_benign_fpr": 0.0338,
+                    "binary_attack_recall": 0.9982,
+                    "inference_time_ms_total": 266.92,
+                    "inference_latency_ms_per_flow": 0.0949,
+                    "per_class": {
+                        "BENIGN": {
+                            "precision": 0.9995,
+                            "recall": 0.9662,
+                            "f1_score": 0.9826,
+                            "fpr": 0.0018,
+                            "fnr": 0.0338,
+                            "pr_auc": 0.9999,
+                            "support": 2250
+                        },
+                        "Bot": {
+                            "precision": 0.4348,
+                            "recall": 0.8889,
+                            "f1_score": 0.5839,
+                            "fpr": 0.0188,
+                            "fnr": 0.1111,
+                            "pr_auc": 0.8015,
+                            "support": 45
+                        },
+                        "DDoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 135
+                        },
+                        "DoS": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 135
+                        },
+                        "FTP-Patator": {
+                            "precision": 0.8947,
+                            "recall": 1.0,
+                            "f1_score": 0.9444,
+                            "fpr": 0.0014,
+                            "fnr": 0.0,
+                            "pr_auc": 0.9113,
+                            "support": 34
+                        },
+                        "Heartbleed": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 11
+                        },
+                        "Infiltration": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 22
+                        },
+                        "PortScan": {
+                            "precision": 1.0,
+                            "recall": 1.0,
+                            "f1_score": 1.0,
+                            "fpr": 0.0,
+                            "fnr": 0.0,
+                            "pr_auc": 1.0,
+                            "support": 112
+                        },
+                        "SSH-Patator": {
+                            "precision": 0.9032,
+                            "recall": 0.8235,
+                            "f1_score": 0.8615,
+                            "fpr": 0.0011,
+                            "fnr": 0.1765,
+                            "pr_auc": 0.9544,
+                            "support": 34
+                        },
+                        "Web Attack": {
+                            "precision": 0.541,
+                            "recall": 0.9706,
+                            "f1_score": 0.6947,
+                            "fpr": 0.0101,
+                            "fnr": 0.0294,
+                            "pr_auc": 0.952,
+                            "support": 34
+                        }
+                    },
+                    "confusion_matrix": [
+                        [
+                            2174,
+                            47,
+                            0,
+                            0,
+                            3,
+                            0,
+                            0,
+                            0,
+                            0,
+                            26
+                        ],
+                        [
+                            1,
+                            40,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            2,
+                            1
+                        ],
+                        [
+                            0,
+                            0,
+                            135,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            135,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            34,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            11,
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            22,
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            112,
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            5,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            28,
+                            1
+                        ],
+                        [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            33
+                        ]
+                    ]
+                }
+            }
+        }
+    },
+    "loao_macro_summary": {
+        "mean_rule_a_anomaly_rejection_rate": 0.1337,
+        "mean_rule_a_missed_as_benign_rate": 0.5933,
+        "mean_rule_a_total_caught_rate": 0.4067,
+        "mean_rule_b_anomaly_rejection_rate": 0.1274,
+        "mean_rule_b_missed_as_benign_rate": 0.5836,
+        "mean_rule_b_total_caught_rate": 0.4164,
+        "mean_benign_false_anomaly_rate": 0.003
+    },
+    "feature_importance_summary": {
+        "evaluation_split": "held-out test set only",
+        "random_state": 42,
+        "permutation_importance_svm_top15": [
+            {
+                "rank": 1,
+                "feature": "Down/Up Ratio",
+                "importance_mean": 0.17467,
+                "importance_std": 0.01184
+            },
+            {
+                "rank": 2,
+                "feature": "Destination Port",
+                "importance_mean": 0.07148,
+                "importance_std": 0.00576
+            },
+            {
+                "rank": 3,
+                "feature": "Bwd Header Length",
+                "importance_mean": 0.04659,
+                "importance_std": 0.00947
+            },
+            {
+                "rank": 4,
+                "feature": "Subflow Bwd Packets",
+                "importance_mean": 0.04659,
+                "importance_std": 0.00947
+            },
+            {
+                "rank": 5,
+                "feature": "Total Backward Packets",
+                "importance_mean": 0.04659,
+                "importance_std": 0.00947
+            },
+            {
+                "rank": 6,
+                "feature": "Packet Length Variance",
+                "importance_mean": 0.02643,
+                "importance_std": 0.00648
+            },
+            {
+                "rank": 7,
+                "feature": "Subflow Fwd Bytes",
+                "importance_mean": 0.02081,
+                "importance_std": 0.00328
+            },
+            {
+                "rank": 8,
+                "feature": "Total Length of Fwd Packets",
+                "importance_mean": 0.02081,
+                "importance_std": 0.00328
+            },
+            {
+                "rank": 9,
+                "feature": "Packet Length Mean",
+                "importance_mean": 0.01838,
+                "importance_std": 0.00599
+            },
+            {
+                "rank": 10,
+                "feature": "Fwd Packet Length Max",
+                "importance_mean": 0.01838,
+                "importance_std": 0.00599
+            },
+            {
+                "rank": 11,
+                "feature": "Max Packet Length",
+                "importance_mean": 0.01838,
+                "importance_std": 0.00599
+            },
+            {
+                "rank": 12,
+                "feature": "Fwd Packet Length Mean",
+                "importance_mean": 0.01838,
+                "importance_std": 0.00599
+            },
+            {
+                "rank": 13,
+                "feature": "Average Packet Size",
+                "importance_mean": 0.01838,
+                "importance_std": 0.00599
+            },
+            {
+                "rank": 14,
+                "feature": "Avg Fwd Segment Size",
+                "importance_mean": 0.01838,
+                "importance_std": 0.00599
+            },
+            {
+                "rank": 15,
+                "feature": "Bwd Packet Length Max",
+                "importance_mean": 0.01838,
+                "importance_std": 0.00599
+            }
+        ],
+        "permutation_importance_xgb_top15": [
+            {
+                "rank": 1,
+                "feature": "Total Fwd Packets",
+                "importance_mean": 0.15684,
+                "importance_std": 0.00885
+            },
+            {
+                "rank": 2,
+                "feature": "Destination Port",
+                "importance_mean": 0.11512,
+                "importance_std": 0.01679
+            },
+            {
+                "rank": 3,
+                "feature": "Total Backward Packets",
+                "importance_mean": 0.09244,
+                "importance_std": 0.00595
+            },
+            {
+                "rank": 4,
+                "feature": "Down/Up Ratio",
+                "importance_mean": 0.02892,
+                "importance_std": 0.0018
+            },
+            {
+                "rank": 5,
+                "feature": "Flow Bytes/s",
+                "importance_mean": 0.01603,
+                "importance_std": 0.00357
+            },
+            {
+                "rank": 6,
+                "feature": "Flow IAT Mean",
+                "importance_mean": 0.0053,
+                "importance_std": 0.00225
+            },
+            {
+                "rank": 7,
+                "feature": "Flow Packets/s",
+                "importance_mean": 0.0049,
+                "importance_std": 0.00295
+            },
+            {
+                "rank": 8,
+                "feature": "Flow Duration",
+                "importance_mean": 0.00355,
+                "importance_std": 0.0011
+            },
+            {
+                "rank": 9,
+                "feature": "Bwd Packet Length Mean",
+                "importance_mean": 0.00221,
+                "importance_std": 0.00141
+            },
+            {
+                "rank": 10,
+                "feature": "Fwd Packet Length Max",
+                "importance_mean": 0.00178,
+                "importance_std": 0.00089
+            },
+            {
+                "rank": 11,
+                "feature": "Total Length of Bwd Packets",
+                "importance_mean": 0.00178,
+                "importance_std": 0.00089
+            },
+            {
+                "rank": 12,
+                "feature": "Idle Std",
+                "importance_mean": 0.0,
+                "importance_std": 0.0
+            },
+            {
+                "rank": 13,
+                "feature": "Idle Max",
+                "importance_mean": 0.0,
+                "importance_std": 0.0
+            },
+            {
+                "rank": 14,
+                "feature": "Idle Min",
+                "importance_mean": 0.0,
+                "importance_std": 0.0
+            },
+            {
+                "rank": 15,
+                "feature": "Idle Mean",
+                "importance_mean": 0.0,
+                "importance_std": 0.0
+            }
+        ],
+        "shap_kernel_svm_top15": [
+            {
+                "rank": 1,
+                "feature": "Destination Port",
+                "mean_abs_shap": 0.01059
+            },
+            {
+                "rank": 2,
+                "feature": "Total Length of Fwd Packets",
+                "mean_abs_shap": 0.00834
+            },
+            {
+                "rank": 3,
+                "feature": "Subflow Fwd Bytes",
+                "mean_abs_shap": 0.0081
+            },
+            {
+                "rank": 4,
+                "feature": "Subflow Fwd Packets",
+                "mean_abs_shap": 0.00553
+            },
+            {
+                "rank": 5,
+                "feature": "act_data_pkt_fwd",
+                "mean_abs_shap": 0.00541
+            },
+            {
+                "rank": 6,
+                "feature": "Fwd Header Length",
+                "mean_abs_shap": 0.00516
+            },
+            {
+                "rank": 7,
+                "feature": "Total Fwd Packets",
+                "mean_abs_shap": 0.00513
+            },
+            {
+                "rank": 8,
+                "feature": "Bwd Header Length",
+                "mean_abs_shap": 0.00434
+            },
+            {
+                "rank": 9,
+                "feature": "SYN Flag Count",
+                "mean_abs_shap": 0.0042
+            },
+            {
+                "rank": 10,
+                "feature": "Total Backward Packets",
+                "mean_abs_shap": 0.00403
+            },
+            {
+                "rank": 11,
+                "feature": "Down/Up Ratio",
+                "mean_abs_shap": 0.00381
+            },
+            {
+                "rank": 12,
+                "feature": "ACK Flag Count",
+                "mean_abs_shap": 0.00373
+            },
+            {
+                "rank": 13,
+                "feature": "Fwd Packet Length Mean",
+                "mean_abs_shap": 0.00365
+            },
+            {
+                "rank": 14,
+                "feature": "Subflow Bwd Packets",
+                "mean_abs_shap": 0.00343
+            },
+            {
+                "rank": 15,
+                "feature": "Min Packet Length",
+                "mean_abs_shap": 0.00326
+            }
+        ],
+        "shap_tree_xgb_top15": [
+            {
+                "rank": 1,
+                "feature": "Total Fwd Packets",
+                "mean_abs_shap": 1.13487
+            },
+            {
+                "rank": 2,
+                "feature": "Destination Port",
+                "mean_abs_shap": 0.91482
+            },
+            {
+                "rank": 3,
+                "feature": "Total Backward Packets",
+                "mean_abs_shap": 0.43955
+            },
+            {
+                "rank": 4,
+                "feature": "Down/Up Ratio",
+                "mean_abs_shap": 0.33479
+            },
+            {
+                "rank": 5,
+                "feature": "Total Length of Fwd Packets",
+                "mean_abs_shap": 0.32805
+            },
+            {
+                "rank": 6,
+                "feature": "Flow IAT Mean",
+                "mean_abs_shap": 0.28375
+            },
+            {
+                "rank": 7,
+                "feature": "Fwd Packet Length Max",
+                "mean_abs_shap": 0.22332
+            },
+            {
+                "rank": 8,
+                "feature": "Flow Bytes/s",
+                "mean_abs_shap": 0.22243
+            },
+            {
+                "rank": 9,
+                "feature": "Bwd Packet Length Mean",
+                "mean_abs_shap": 0.17668
+            },
+            {
+                "rank": 10,
+                "feature": "Flow Duration",
+                "mean_abs_shap": 0.15394
+            },
+            {
+                "rank": 11,
+                "feature": "Flow Packets/s",
+                "mean_abs_shap": 0.12422
+            },
+            {
+                "rank": 12,
+                "feature": "Fwd Header Length",
+                "mean_abs_shap": 0.10963
+            },
+            {
+                "rank": 13,
+                "feature": "Fwd IAT Mean",
+                "mean_abs_shap": 0.09206
+            },
+            {
+                "rank": 14,
+                "feature": "Fwd Packet Length Mean",
+                "mean_abs_shap": 0.09116
+            },
+            {
+                "rank": 15,
+                "feature": "Total Length of Bwd Packets",
+                "mean_abs_shap": 0.09109
+            }
+        ],
+        "svm_perm_vs_kernelshap_top15_overlap": [
+            "Bwd Header Length",
+            "Destination Port",
+            "Down/Up Ratio",
+            "Fwd Packet Length Mean",
+            "Subflow Bwd Packets",
+            "Subflow Fwd Bytes",
+            "Total Backward Packets",
+            "Total Length of Fwd Packets"
+        ]
+    }
+}

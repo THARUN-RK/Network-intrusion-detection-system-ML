@@ -21,8 +21,10 @@ from sklearn.metrics import (
     recall_score,
     f1_score,
     confusion_matrix,
-    classification_report
+    classification_report,
+    average_precision_score,
 )
+from sklearn.preprocessing import label_binarize
 
 import config
 
@@ -67,6 +69,25 @@ def evaluate_nids_model(
     
     # Confusion Matrix
     cm = confusion_matrix(y_test, y_pred, labels=classes)
+
+    # PR-AUC (One-vs-Rest Average Precision)
+    macro_pr_auc = None
+    weighted_pr_auc = None
+    per_class_pr_auc = {}
+    if hasattr(model_pipeline, "predict_proba"):
+        probs = model_pipeline.predict_proba(X_test)
+        y_bin = label_binarize(y_test, classes=classes)
+        valid_aps = []
+        weights = []
+        for i, cls_name in enumerate(classes):
+            if y_bin[:, i].sum() > 0:
+                ap = float(average_precision_score(y_bin[:, i], probs[:, i]))
+                per_class_pr_auc[cls_name] = round(ap, 4)
+                valid_aps.append(ap)
+                weights.append(float(y_bin[:, i].sum()))
+        if valid_aps:
+            macro_pr_auc = round(float(np.mean(valid_aps)), 4)
+            weighted_pr_auc = round(float(np.average(valid_aps, weights=weights)), 4)
     
     # Calculate Per-Class FPR and FNR
     per_class_metrics = {}
@@ -85,7 +106,8 @@ def evaluate_nids_model(
             "f1_score": float(cls_report_dict.get(cls_name, {}).get("f1-score", 0.0)),
             "support": int(cls_report_dict.get(cls_name, {}).get("support", 0)),
             "false_positive_rate": round(fpr, 4),
-            "false_negative_rate": round(fnr, 4)
+            "false_negative_rate": round(fnr, 4),
+            "pr_auc": per_class_pr_auc.get(cls_name),
         }
         
     metrics_summary = {
@@ -96,6 +118,8 @@ def evaluate_nids_model(
         "weighted_recall": round(weighted_rec, 4),
         "macro_f1_score": round(macro_f1, 4),
         "weighted_f1_score": round(weighted_f1, 4),
+        "macro_pr_auc": macro_pr_auc,
+        "weighted_pr_auc": weighted_pr_auc,
         "prediction_latency_ms_per_record": round(latency_ms_per_record, 3),
         "total_test_samples": int(len(X_test)),
         "classes": classes,
@@ -163,13 +187,15 @@ def evaluate_nids_model(
 
 if __name__ == "__main__":
     if config.MODEL_PATH.exists():
-        logger.info(f"Loading existing model from {config.MODEL_PATH} for evaluation...")
+        logger.info(f"Loading existing model from {config.MODEL_PATH} for held-out evaluation...")
         pipeline = joblib.load(config.MODEL_PATH)
         import preprocessing
         raw_df = preprocessing.load_raw_dataset()
-        X, y = preprocessing.preprocess_dataframe(raw_df)
-        X_test = X.sample(n=min(2000, len(X)), random_state=config.RANDOM_STATE)
-        y_test = y.loc[X_test.index]
+        X_raw, y_raw = preprocessing.preprocess_dataframe(raw_df)
+        X_clean, y_clean, _ = preprocessing.clean_features_and_labels(X_raw, y_raw)
+        _, X_test, _, y_test, _ = preprocessing.stratified_clean_split(
+            X_clean, y_clean, test_size=config.TEST_SPLIT_RATIO, random_state=config.RANDOM_STATE
+        )
         evaluate_nids_model(pipeline, X_test, y_test)
     else:
         logger.warning("Model file not found. Run train_model.py first.")

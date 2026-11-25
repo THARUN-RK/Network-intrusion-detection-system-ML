@@ -268,3 +268,165 @@ def get_stratified_sample(X: pd.DataFrame, y: pd.Series, max_samples: int = conf
     
     logger.info(f"Stratified sampling complete: {len(X_sampled):,} records selected from {len(X):,}")
     return X_sampled, y_sampled
+
+
+def clean_features_and_labels(
+    X: pd.DataFrame,
+    y: pd.Series,
+    drop_inf_nan: bool = True,
+    drop_duplicates: bool = True,
+) -> Tuple[pd.DataFrame, pd.Series, Dict[str, int]]:
+    """
+    Removes inf/-inf, NaN rows, and duplicate feature rows BEFORE train/test splitting
+    so identical flows cannot leak across train and test partitions.
+    """
+    raw_rows = int(len(X))
+    X_work = X.replace([np.inf, -np.inf], np.nan)
+
+    inf_nan_mask = X_work.isna().any(axis=1)
+    inf_nan_count = int(inf_nan_mask.sum())
+    if drop_inf_nan and inf_nan_count > 0:
+        valid_mask = ~inf_nan_mask
+        X_work = X_work.loc[valid_mask].copy()
+        y_work = y.loc[valid_mask].copy()
+    else:
+        y_work = y.copy()
+
+    # Check exact row + label duplicates and feature-only duplicates
+    combined = X_work.copy()
+    combined["__label__"] = y_work.values
+    exact_row_label_dups = int(combined.duplicated(keep="first").sum())
+    feature_dups_mask = X_work.duplicated(keep="first")
+    feature_dups_count = int(feature_dups_mask.sum())
+    conflicting_label_dups = int(feature_dups_count - exact_row_label_dups)
+
+    if drop_duplicates and feature_dups_count > 0:
+        keep_mask = ~feature_dups_mask
+        X_work = X_work.loc[keep_mask].copy()
+        y_work = y_work.loc[keep_mask].copy()
+
+    audit_stats = {
+        "raw_rows": raw_rows,
+        "inf_nan_rows_dropped": inf_nan_count if drop_inf_nan else 0,
+        "inf_nan_rows_found": inf_nan_count,
+        "exact_row_label_duplicates_found": exact_row_label_dups,
+        "feature_duplicates_dropped": feature_dups_count if drop_duplicates else 0,
+        "conflicting_label_duplicates": max(0, conflicting_label_dups),
+        "clean_rows": int(len(X_work)),
+    }
+    logger.info(
+        f"Clean dataset audit: raw={raw_rows:,}, inf/nan_dropped={audit_stats['inf_nan_rows_dropped']:,}, "
+        f"duplicates_dropped={audit_stats['feature_duplicates_dropped']:,}, clean={audit_stats['clean_rows']:,}"
+    )
+    return X_work, y_work, audit_stats
+
+
+def stratified_clean_split(
+    X: pd.DataFrame,
+    y: pd.Series,
+    test_size: float = 0.30,
+    random_state: int = config.RANDOM_STATE,
+) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series, Dict[str, int]]:
+    """
+    Performs stratified train/test split on already cleaned/deduplicated data,
+    then verifies zero index and zero feature-hash overlap across splits.
+    """
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, stratify=y, random_state=random_state
+    )
+
+    index_overlap = len(set(X_train.index) & set(X_test.index))
+    train_hashes = set(pd.util.hash_pandas_object(X_train, index=False).tolist())
+    test_hashes = set(pd.util.hash_pandas_object(X_test, index=False).tolist())
+    feature_hash_overlap = len(train_hashes & test_hashes)
+
+    if index_overlap > 0 or feature_hash_overlap > 0:
+        raise RuntimeError(
+            f"Data leakage detected across split: index_overlap={index_overlap}, "
+            f"feature_hash_overlap={feature_hash_overlap}"
+        )
+
+    split_checks = {
+        "train_rows": int(len(X_train)),
+        "test_rows": int(len(X_test)),
+        "index_overlap": index_overlap,
+        "feature_hash_overlap": feature_hash_overlap,
+    }
+    return X_train, X_test, y_train, y_test, split_checks
+
+
+def build_balanced_test_set(
+    X_test_pool: pd.DataFrame,
+    y_test_pool: pd.Series,
+    random_state: int = config.RANDOM_STATE,
+) -> Tuple[pd.DataFrame, pd.Series]:
+    """
+    Builds a uniformly balanced evaluation set strictly from the held-out test pool
+    by sampling `min_class_count` flows per class without replacement.
+    """
+    counts = y_test_pool.value_counts()
+    n_per_class = int(counts.min())
+    sampled_indices = []
+    for cls in sorted(counts.index):
+        cls_idx = y_test_pool[y_test_pool == cls].sample(
+            n=n_per_class, replace=False, random_state=random_state
+        ).index
+        sampled_indices.extend(cls_idx.tolist())
+    X_bal = X_test_pool.loc[sampled_indices]
+    y_bal = y_test_pool.loc[sampled_indices]
+    return X_bal, y_bal
+
+
+def build_natural_test_set(
+    X_test_pool: pd.DataFrame,
+    y_test_pool: pd.Series,
+    target_benign_ratio: float = 0.80,
+    random_state: int = config.RANDOM_STATE,
+) -> Tuple[pd.DataFrame, pd.Series, Dict[str, Any]]:
+    """
+    Evaluates against an ~80% BENIGN natural class distribution strictly within the
+    held-out test pool. If the pool already has >= 78% BENIGN (real CIC-IDS2017),
+    uses the test pool unmodified; otherwise keeps all BENIGN test flows and
+    proportionally downsamples attack classes without replacement.
+    """
+    benign_mask = (y_test_pool == "BENIGN")
+    n_benign = int(benign_mask.sum())
+    total = int(len(y_test_pool))
+    current_ratio = n_benign / total if total > 0 else 0.0
+
+    if current_ratio >= (target_benign_ratio - 0.02) or n_benign == 0:
+        return X_test_pool, y_test_pool, {
+            "benign_ratio": round(current_ratio, 4),
+            "downsampled_attacks": False,
+            "total_rows": total,
+        }
+
+    # Keep all BENIGN rows; subsample attacks proportionally without replacement
+    target_attack_total = max(1, int(round(n_benign * (1.0 - target_benign_ratio) / target_benign_ratio)))
+    attack_y = y_test_pool[~benign_mask]
+    attack_counts = attack_y.value_counts()
+    scale = target_attack_total / len(attack_y)
+
+    # Allocate integer counts per attack class proportionally (minimum 1 each)
+    alloc = {cls: max(1, int(round(cnt * scale))) for cls, cnt in attack_counts.items()}
+    # Adjust rounding difference on the largest attack class
+    diff = sum(alloc.values()) - target_attack_total
+    if diff != 0:
+        largest_cls = attack_counts.index[0]
+        alloc[largest_cls] = max(1, alloc[largest_cls] - diff)
+
+    selected_idx = list(y_test_pool[benign_mask].index)
+    for cls, target_n in alloc.items():
+        cls_pool = y_test_pool[y_test_pool == cls]
+        take_n = min(len(cls_pool), target_n)
+        chosen = cls_pool.sample(n=take_n, replace=False, random_state=random_state).index
+        selected_idx.extend(chosen.tolist())
+
+    X_nat = X_test_pool.loc[selected_idx]
+    y_nat = y_test_pool.loc[selected_idx]
+    actual_ratio = float((y_nat == "BENIGN").mean())
+    return X_nat, y_nat, {
+        "benign_ratio": round(actual_ratio, 4),
+        "downsampled_attacks": True,
+        "total_rows": int(len(X_nat)),
+    }

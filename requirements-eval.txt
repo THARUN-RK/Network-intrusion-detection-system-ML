@@ -1,0 +1,4 @@
+-r requirements.txt
+xgboost>=2.0.0
+shap>=0.46.0
+imbalanced-learn>=0.13.0

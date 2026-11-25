@@ -128,38 +128,56 @@ def save_model_artifacts(
 
 def run_training_workflow(
     sample_size: int = config.SVM_TRAIN_SAMPLE_SIZE,
-    tune_grid: bool = True
+    tune_grid: bool = True,
+    cv_folds: int = 5
 ) -> Tuple[Pipeline, Dict[str, Any], pd.DataFrame, pd.Series]:
     """
-    Executes the complete training workflow:
+    Executes the complete leakage-free training workflow:
     1. Loads dataset
-    2. Preprocesses and canonicalizes labels
-    3. Performs stratified train-test splitting
-    4. Trains SVM model with cross-validation
-    5. Saves artifacts
+    2. Preprocesses, canonicalizes labels, and drops inf/NaN and duplicate rows BEFORE splitting
+    3. Performs stratified train-test split FIRST (zero index/hash overlap)
+    4. Bounds only the training split if needed for hardware RAM limits
+    5. Trains SVM model with stratified cross-validation inside a leakage-free Pipeline
+    6. Saves artifacts
     """
     raw_df = preprocessing.load_raw_dataset()
-    X, y = preprocessing.preprocess_dataframe(raw_df)
-    
-    # Controlled stratified sampling for 8GB RAM safety
-    X_sampled, y_sampled = preprocessing.get_stratified_sample(X, y, max_samples=sample_size)
-    
-    # Stratified train-test split
-    X_train, X_test, y_train, y_test = train_test_split(
-        X_sampled,
-        y_sampled,
-        test_size=config.TEST_SPLIT_RATIO,
-        stratify=y_sampled,
-        random_state=config.RANDOM_STATE
+    X_raw, y_raw = preprocessing.preprocess_dataframe(raw_df)
+    X_clean, y_clean, audit_stats = preprocessing.clean_features_and_labels(
+        X_raw, y_raw, drop_inf_nan=True, drop_duplicates=True
     )
-    
-    logger.info(f"Dataset Split: Train={len(X_train):,}, Test={len(X_test):,}")
-    
-    pipeline, metadata = train_svm_pipeline(X_train, y_train, tune_hyperparameters=tune_grid)
+
+    # Split FIRST on deduplicated, NaN/Inf-free data
+    X_train_full, X_test, y_train_full, y_test, split_checks = preprocessing.stratified_clean_split(
+        X_clean,
+        y_clean,
+        test_size=config.TEST_SPLIT_RATIO,
+        random_state=config.RANDOM_STATE,
+    )
+
+    # Hardware cap applies strictly to the training split AFTER train/test separation
+    if len(X_train_full) > sample_size:
+        X_train, y_train = preprocessing.get_stratified_sample(
+            X_train_full, y_train_full, max_samples=sample_size
+        )
+    else:
+        X_train, y_train = X_train_full, y_train_full
+
+    logger.info(
+        f"Leakage-Free Dataset Split: Train={len(X_train):,} "
+        f"(from pool {len(X_train_full):,}), Held-Out Test={len(X_test):,}"
+    )
+
+    pipeline, metadata = train_svm_pipeline(
+        X_train, y_train, tune_hyperparameters=tune_grid, cv_folds=cv_folds
+    )
+    metadata["cleaning_audit"] = audit_stats
+    metadata["split_audit"] = split_checks
+    metadata["test_split_ratio"] = config.TEST_SPLIT_RATIO
+    metadata["random_state"] = config.RANDOM_STATE
     save_model_artifacts(pipeline, metadata)
-    
+
     return pipeline, metadata, X_test, y_test
 
 
 if __name__ == "__main__":
-    run_training_workflow(sample_size=8000, tune_grid=True)
+    run_training_workflow(sample_size=config.SVM_TRAIN_SAMPLE_SIZE, tune_grid=True, cv_folds=5)

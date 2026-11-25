@@ -1,0 +1,109 @@
+{
+    "dataset_files_on_disk": [
+        "CICIDS2017_Benchmark_Sample.csv"
+    ],
+    "is_synthetic_benchmark_dataset": true,
+    "dataset_class_counts": {
+        "BENIGN": 7500,
+        "DoS": 1800,
+        "DDoS": 1800,
+        "PortScan": 1500,
+        "Bot": 600,
+        "Web Attack": 450,
+        "FTP-Patator": 450,
+        "SSH-Patator": 450,
+        "Infiltration": 300,
+        "Heartbleed": 150
+    },
+    "cleaning_audit": {
+        "raw_rows": 15000,
+        "inf_nan_rows_dropped": 0,
+        "inf_nan_rows_found": 0,
+        "exact_row_label_duplicates_found": 0,
+        "feature_duplicates_dropped": 0,
+        "conflicting_label_duplicates": 0,
+        "clean_rows": 15000
+    },
+    "legacy_evaluation_leakage": {
+        "legacy_train_size": 6400,
+        "legacy_eval_size": 2000,
+        "train_rows_leaked_into_eval": 869,
+        "train_overlap_percent": 43.45,
+        "heldout_test_rows_in_eval": 205,
+        "eval_2000_class_counts": {
+            "BENIGN": 1013,
+            "DoS": 244,
+            "DDoS": 223,
+            "PortScan": 194,
+            "Bot": 93,
+            "Web Attack": 61,
+            "FTP-Patator": 59,
+            "SSH-Patator": 57,
+            "Infiltration": 36,
+            "Heartbleed": 20
+        },
+        "legacy_report_total_test_samples": 3000,
+        "legacy_report_heartbleed_support": 30,
+        "legacy_report_infiltration_support": 60,
+        "day_wise_overlap_with_train_rows": 6400,
+        "day_wise_total_evaluated": 15000,
+        "explanation_heartbleed_20_infiltration_36": "Real CIC-IDS2017 contains 11 Heartbleed and 36 Infiltration flows across ~2.83M records, with ~80.3% BENIGN. However, this repository only contains the synthetically generated CICIDS2017_Benchmark_Sample.csv (15,000 rows: 50% BENIGN, 150 Heartbleed [1%], 300 Infiltration [2%]). Legacy evaluation.py sampled n=2000 randomly from all 15,000 rows instead of the held-out split, producing exact counts Heartbleed=20 and Infiltration=36 while leaking 869/2000 (43.45%) training rows."
+    },
+    "destination_port_shortcut_audit": {
+        "port_only_decision_tree_accuracy": 0.6873,
+        "port_only_decision_tree_macro_f1": 0.4825,
+        "sample_unique_ports_by_class": {
+            "BENIGN": [
+                53,
+                80,
+                443,
+                8080
+            ],
+            "Bot": [
+                4444,
+                6667,
+                8080
+            ],
+            "DDoS": [
+                53,
+                80,
+                8080
+            ],
+            "DoS": [
+                80,
+                443
+            ],
+            "FTP-Patator": [
+                21
+            ],
+            "Heartbleed": [
+                443
+            ],
+            "Infiltration": [
+                22,
+                443,
+                8443
+            ],
+            "PortScan": [
+                3367,
+                7745,
+                9159,
+                21290,
+                23736,
+                36401,
+                50625,
+                51821,
+                55661,
+                60661
+            ],
+            "SSH-Patator": [
+                22
+            ],
+            "Web Attack": [
+                80,
+                443,
+                8080
+            ]
+        }
+    }
+}

@@ -106,22 +106,26 @@ class NIDSPredictor:
         
         # Compute confidence from predict_proba
         confidence = 0.0
+        max_confidence = 0.0
         prob_dict = {}
         if hasattr(self.pipeline, "predict_proba"):
             probs = self.pipeline.predict_proba(df_aligned)[0]
             class_indices = {cls: idx for idx, cls in enumerate(self.pipeline.classes_)}
             pred_idx = class_indices.get(predicted_class, 0)
             confidence = round(float(probs[pred_idx]) * 100.0, 2)
+            max_confidence = round(float(np.max(probs)) * 100.0, 2)
             prob_dict = {cls: round(float(p) * 100.0, 2) for cls, p in zip(self.pipeline.classes_, probs)}
         else:
             confidence = 100.0
+            max_confidence = 100.0
             
-        # Unknown Traffic Rejection (Zero-day defense)
+        # Unknown Traffic Rejection (Zero-day defense): reject ANY prediction below threshold
         is_anomaly = False
-        if confidence < ANOMALY_CONFIDENCE_THRESHOLD and predicted_class != "BENIGN":
+        if max_confidence < ANOMALY_CONFIDENCE_THRESHOLD:
             is_anomaly = True
             predicted_class = "ANOMALY (Unknown Threat)"
             security_status = "ATTACK"
+            confidence = max_confidence
         else:
             security_status = "BENIGN" if predicted_class == "BENIGN" else "ATTACK"
             
@@ -185,14 +189,17 @@ class NIDSPredictor:
             if has_proba and probs_matrix is not None:
                 class_idx = list(self.pipeline.classes_).index(pred_class)
                 conf = round(float(probs_matrix[i, class_idx]) * 100.0, 2)
+                max_conf = round(float(np.max(probs_matrix[i])) * 100.0, 2)
             else:
                 conf = 100.0
+                max_conf = 100.0
                 
             is_ano = False
-            if conf < ANOMALY_CONFIDENCE_THRESHOLD and pred_class != "BENIGN":
+            if max_conf < ANOMALY_CONFIDENCE_THRESHOLD:
                 is_ano = True
                 pred_class = "ANOMALY (Unknown Threat)"
                 sec_status = "ATTACK"
+                conf = max_conf
             else:
                 sec_status = "BENIGN" if pred_class == "BENIGN" else "ATTACK"
                 

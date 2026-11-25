@@ -108,11 +108,21 @@ def evaluate_day_wise(
     if not data_file.exists():
         raise FileNotFoundError(f"Dataset benchmark not found at {data_file}")
         
-    logger.info(f"Reading benchmark dataset from {data_file}...")
+    logger.info(f"Reading dataset from {data_file}...")
     raw_df = pd.read_csv(data_file)
-    raw_df["Label"] = raw_df["Label"].apply(preprocessing.canonicalize_label)
-    
-    day_partitions = partition_dataset_by_days(raw_df, random_state=config.RANDOM_STATE)
+    X_raw, y_raw = preprocessing.preprocess_dataframe(raw_df)
+    X_clean, y_clean, _ = preprocessing.clean_features_and_labels(X_raw, y_raw)
+    _, X_test_only, _, y_test_only, _ = preprocessing.stratified_clean_split(
+        X_clean, y_clean, test_size=config.TEST_SPLIT_RATIO, random_state=config.RANDOM_STATE
+    )
+    heldout_df = X_test_only.copy()
+    heldout_df["Label"] = y_test_only.values
+    logger.info(
+        f"Evaluating day-wise partitions strictly on {len(heldout_df):,} held-out test flows "
+        "(Note: CICIDS2017_Benchmark_Sample.csv has no real timestamps; day groupings are simulated by label)."
+    )
+
+    day_partitions = partition_dataset_by_days(heldout_df, random_state=config.RANDOM_STATE)
     
     day_results = {}
     overall_start = time.perf_counter()
@@ -180,6 +190,8 @@ def evaluate_day_wise(
         "total_flows_evaluated": sum(d["total_records"] for d in day_results.values()),
         "overall_evaluation_duration_seconds": round(total_duration, 2),
         "anomaly_rejection_threshold_percent": ANOMALY_CONFIDENCE_THRESHOLD,
+        "evaluated_on_heldout_split_only": True,
+        "is_simulated_day_partition": True,
         "days": day_results
     }
     

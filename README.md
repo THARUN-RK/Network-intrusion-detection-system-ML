@@ -7,7 +7,7 @@
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-green.svg)](https://fastapi.tiangolo.com/)
 [![Streamlit](https://img.shields.io/badge/SOC%20Console-Streamlit-red.svg)](https://streamlit.io/)
 [![Docker](https://img.shields.io/badge/Container-Docker%20Compose-2496ED.svg)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-20%20Passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-23%20Passed-brightgreen.svg)](tests/)
 
 An enterprise-grade, full-stack **Network Intrusion Detection System (NIDS)** and interactive **Security Operations Center (SOC)**. Built with **Multiclass Support Vector Machine (RBF Kernel)**, **FastAPI REST API**, **WebSockets**, **SQLAlchemy (SQLite + PostgreSQL)**, **Scapy Live Packet Capture**, **ReportLab Executive PDF Generator**, and an 8-console **Streamlit SOC Dashboard**. 
 
@@ -38,13 +38,14 @@ Trained and evaluated on the Canadian Institute for Cybersecurity **CIC-IDS2017*
 9. [Installation & Execution Guide](#-installation--execution-guide)
 10. [Docker Container Deployment](#-docker-container-deployment)
 11. [Automated Testing Suite (Pytest)](#-automated-testing-suite)
-12. [Hardware Optimization & CSE Presentation Guide](#-hardware-optimization--cse-presentation-guide)
+12. [Evaluation and Limitations](#evaluation-and-limitations)
+13. [Hardware Optimization & CSE Presentation Guide](#-hardware-optimization--cse-presentation-guide)
 
 ---
 
 ## 🚀 Key Features
 
-- **🧠 Multiclass SVM with RBF Kernel:** 98.50% overall accuracy, 97.70% macro F1-score, and sub-millisecond inference latency (0.061 ms/flow).
+- **🧠 Multiclass SVM with RBF Kernel:** 98.40% accuracy, 97.59% macro F1-score, and 99.43% macro PR-AUC on the 3,000-flow held-out benchmark split (`0.097 ms/flow`), with explicit natural-distribution (80% benign) evaluation (`92.93%` macro F1).
 - **🛡️ 8-Console Streamlit SOC Dashboard:** Real-time KPI monitoring, threat analytics, manual flow triage, batch CSV triage, IP threat profiling, incident response ticketing, temporal evaluation, and Scapy packet capture.
 - **⚡ FastAPI REST & WebSocket Backend:** Asynchronous `/ws/alerts` socket streaming live detections directly to monitoring consoles.
 - **🔐 JWT Authentication & RBAC:** Secure PBKDF2/bcrypt password hashing with role-based access control (`admin`, `analyst`).
@@ -149,32 +150,33 @@ In network traffic analysis, attack patterns frequently exhibit non-linear bound
 
 $$K(x, x') = \exp\left(-\gamma \|x - x'\|^2\right)$$
 
-- **Hyperparameters:** Optimized via `GridSearchCV` with stratified 3-fold cross-validation ($C=10.0, \gamma=\text{'scale'}$, class-balanced sample weights).
-- **Leakage Prevention:** Identifiers (`Flow ID`, `Source IP`, `Destination IP`, `Timestamp`) are explicitly excluded from model features, ensuring the classifier learns true flow dynamics.
-- **Zero-Day Anomaly Rejection:** Posterior class probabilities are calibrated using Platt scaling. When maximum class probability falls below **55.0%**, traffic is flagged as `UNKNOWN / ANOMALY`, alerting analysts to novel threat patterns.
+- **Hyperparameters:** Optimized via `GridSearchCV` with stratified 5-fold cross-validation ($C=10, \gamma=0.01$, class-balanced sample weights).
+- **Leakage Prevention:** Identifiers (`Flow ID`, `Source IP`, `Destination IP`, `Timestamp`) are dropped, `inf`/`NaN` and duplicate rows are cleaned before splitting, and preprocessing (`SimpleImputer` + `StandardScaler`) fits strictly inside training folds.
+- **Zero-Day Anomaly Rejection:** Platt-scaled posterior probabilities below **55.0%** trigger `ANOMALY (Unknown Threat)` (see [Evaluation and Limitations](#evaluation-and-limitations) for honest Leave-One-Attack-Out failure analysis).
 
-### Model Evaluation Results (1,200 Unseen Test Records)
+### Model Evaluation Results (3,000 Held-Out Benchmark Flows)
 
 | Metric | Measured Result |
 | :--- | :--- |
-| **Overall Accuracy** | **98.50%** |
-| **Macro F1-Score** | **97.70%** |
-| **Weighted F1-Score** | **98.55%** |
-| **Prediction Latency** | **0.061 ms / flow** |
+| **Overall Accuracy** | **98.40%** |
+| **Macro F1-Score** | **97.59%** |
+| **Weighted F1-Score** | **98.45%** |
+| **Macro PR-AUC** | **99.43%** |
+| **Prediction Latency** | **0.097 ms / flow** |
 
 ---
 
 ## 📅 Day-Wise Temporal Generalization Results
 
-To prove that the model does not suffer from temporal data leakage and generalizes across varied attack types, the model was cross-tested across all 5 days of the CIC-IDS2017 schedule (**15,000 total flows**):
+When partitioned into simulated Monday–Friday attack schedules strictly over the **3,000 held-out test flows** (`CICIDS2017_Benchmark_Sample.csv` lacks real timestamps, so this tests label-grouped profile stability rather than true temporal drift):
 
 | Day | Scenario / Threat Vectors | Total Flows | Attack Flows | Accuracy | Attack Recall | Benign FPR | Inference Latency |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Monday** | Baseline Normal Traffic (No Attacks) | 1,500 | 0 | **97.87%** | 100.0% | 2.13% | 0.167 ms |
-| **Tuesday** | Brute Force (FTP-Patator, SSH-Patator) | 2,400 | 900 | **98.25%** | **99.89%** | 2.60% | 0.161 ms |
-| **Wednesday** | Volumetric DoS & Heartbleed | 3,450 | 1,950 | **99.13%** | **99.95%** | 1.93% | 0.142 ms |
-| **Thursday** | Web Attacks (SQLi, XSS) & Infiltration | 2,250 | 750 | **97.42%** | **98.67%** | 2.67% | 0.133 ms |
-| **Friday** | DDoS, PortScan & Botnet | 5,400 | 3,900 | **99.19%** | **99.90%** | 2.53% | 0.123 ms |
+| **Monday** | Baseline Normal Traffic (No Attacks) | 300 | 0 | **98.00%** | N/A (0 attacks) | 2.00% | 0.103 ms |
+| **Tuesday** | Brute Force (FTP-Patator, SSH-Patator) | 480 | 180 | **98.33%** | **100.00%** | 2.33% | 0.100 ms |
+| **Wednesday** | Volumetric DoS & Heartbleed | 690 | 390 | **98.70%** | **100.00%** | 3.00% | 0.102 ms |
+| **Thursday** | Web Attacks (SQLi, XSS) & Infiltration | 450 | 150 | **97.11%** | **98.67%** | 3.33% | 0.102 ms |
+| **Friday** | DDoS, PortScan & Botnet | 1,080 | 780 | **98.89%** | **99.87%** | 3.67% | 0.100 ms |
 
 *Day-wise charts saved to `reports/day_wise_evaluation.png` and `reports/day_wise_report.json`.*
 
@@ -277,52 +279,127 @@ docker-compose up --build -d
 
 ## 🧪 Automated Testing Suite
 
-The repository contains 20 comprehensive unit and integration tests covering data preprocessing, model inference, live flow generation, REST endpoints, incident workflows, and day-wise temporal evaluation:
+The repository contains 23 unit and integration tests covering data preprocessing, leakage-free train/test splitting, model inference, Scapy vs. CICFlowMeter PCAP feature parity (all 71 features), REST endpoints, incident workflows, and day-wise evaluation:
 
 ```bash
 pytest -v
 ```
 
 ```text
-============================= test session starts =============================
-collected 20 items
+23 passed in 8.42s
+```
 
-tests/test_api.py::test_health_check_function PASSED                     [  5%]
-tests/test_api.py::test_model_info_function PASSED                       [ 10%]
-tests/test_api.py::test_predict_single_endpoint PASSED                   [ 15%]
-tests/test_api.py::test_predict_batch_endpoint PASSED                    [ 20%]
-tests/test_api.py::test_analytics_and_history_endpoints PASSED           [ 25%]
-tests/test_api.py::test_auth_login PASSED                                [ 30%]
-tests/test_api.py::test_soc_incident_workflow PASSED                     [ 35%]
-tests/test_api.py::test_soc_ip_reputation_and_block PASSED               [ 40%]
-tests/test_api.py::test_soc_pdf_report_generation PASSED                 [ 45%]
-tests/test_evaluation.py::test_partition_dataset_by_days PASSED          [ 50%]
-tests/test_evaluation.py::test_day_wise_evaluation_execution PASSED      [ 55%]
-tests/test_monitoring.py::test_network_flow_feature_extraction PASSED    [ 60%]
-tests/test_monitoring.py::test_flow_features_compatibility_with_model PASSED [ 65%]
-tests/test_prediction.py::test_predictor_loaded PASSED                   [ 70%]
-tests/test_prediction.py::test_predict_single_flow PASSED                [ 75%]
-tests/test_prediction.py::test_predict_batch PASSED                      [ 80%]
-tests/test_preprocessing.py::test_clean_column_name PASSED               [ 85%]
-tests/test_preprocessing.py::test_canonicalize_label PASSED              [ 90%]
-tests/test_preprocessing.py::test_network_flow_sanitizer PASSED          [ 95%]
-tests/test_preprocessing.py::test_feature_pipeline_fit_transform PASSED  [100%]
+---
 
-============================= 20 passed in 16.73s =============================
+## Evaluation and Limitations
+
+All artifacts below are generated directly from reproducible code (`python evaluate_rigorous.py`, `RANDOM_STATE=42`) and stored under [`results/`](results/).
+
+### 1. Pipeline Audit & Root Cause of `Heartbleed=20` / `Infiltration=36`
+
+1. **Dataset Provenance (`dataset_utility.py` vs. Real CIC-IDS2017):**
+   - The repository contains `dataset/raw/CICIDS2017_Benchmark_Sample.csv` (15,000 **synthetically generated** flows: 50% BENIGN, 150 Heartbleed [1%], 300 Infiltration [2%]), **not** the raw 2.83M-flow CIC-IDS2017 CSVs (where Heartbleed has 11 total flows, Infiltration has 36 total flows, and ~80.3% of traffic is BENIGN).
+2. **Direct Train/Test Leakage in Legacy `evaluation.py` & `day_wise_evaluation.py`:**
+   - Legacy `train_model.py` stratified-sampled 8,000 rows *before* splitting `6,400` train / `1,600` test without persisting the test split. Legacy `evaluation.py` then ran `X.sample(n=2000, random_state=42)` across all `15,000` rows, yielding `Heartbleed=20` and `Infiltration=36` (matching `reports/evaluation_report.json`) — **869 out of 2,000 evaluation rows (43.45%) were training rows**.
+   - Legacy `day_wise_evaluation.py` evaluated all 15,000 rows (leaking all 6,400 training rows) on simulated label groups without real timestamps.
+3. **Deduplication & Cleaning Gap:**
+   - Legacy `preprocessing.py` did not drop duplicate feature rows or `inf`/`NaN` rows prior to splitting. While `CICIDS2017_Benchmark_Sample.csv` has 0 duplicates and 0 `inf`/`NaN` rows, real CIC-IDS2017 CSVs require pre-split deduplication and sanitization to avoid duplicate leakage across splits.
+4. **`Destination Port` Shortcutting & Feature Collinearity:**
+   - A depth-5 Decision Tree trained solely on `Destination Port` achieves **68.73% accuracy** (`0.4825` macro F1) because synthetic classes bind tightly to static ports (`FTP-Patator=21`, `SSH-Patator=22`, `Heartbleed=443`). Removing `Destination Port` lowers SVM Natural Test Macro F1 from `92.93%` to `90.67%`.
+   - Synthetic generator formulas also create exact linear/scalar dependencies (`Bwd Header Length = 20 * bwd_pkts`, `Fwd Packet Length Max = 1.5 * pkt_len_mean`), producing identical permutation-importance ties across derived columns.
+
+### 2. Leakage-Free Model Comparison (5-Fold CV + Balanced vs. ~80% Benign Test Sets)
+
+Data was cleaned (`drop_inf_nan`, `drop_duplicates`) and split **first** (70% train = `10,500`, 30% held-out pool = `4,500`; `0` index overlap, `0` feature-hash overlap). Balancing (`class_weight='balanced'` or train-only `SMOTE`) was applied **only inside training folds**:
+- **(a) Balanced Test Set (`n=450`):** 45 flows per class across all 10 categories, sampled strictly from the held-out pool.
+- **(b) Natural Class Distribution Test Set (`n=2,812`):** All 2,250 held-out `BENIGN` flows (`80.01%`) plus 562 proportionally sampled held-out attacks.
+
+| Model | 5-Fold CV Acc | 5-Fold CV Macro F1 | Balanced Acc / Macro F1 / PR-AUC | Natural Acc / Macro F1 / PR-AUC | Natural Benign FPR / Attack Recall | Train (s) | Infer (ms/flow) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **SVM (RBF, class_weight)** | 98.38 ± 0.25% | 97.40 ± 0.38% | 98.67% / 98.66% / 99.86% | 97.72% / **92.93%** / 97.92% | 2.62% / 99.82% | 2.983 | 0.0916 |
+| **SVM (RBF, Train-Only SMOTE)** | 99.05 ± 0.23% | 98.30 ± 0.39% | 97.56% / 97.55% / 99.82% | 98.61% / 94.81% / 98.44% | 1.29% / 99.11% | 2.988 | 0.0800 |
+| **Random Forest** | 99.35 ± 0.09% | 98.87 ± 0.14% | 99.78% / 99.78% / 99.94% | 99.18% / 97.42% / 99.76% | 1.02% / 100.00% | 1.208 | 0.0168 |
+| **XGBoost** | **99.69 ± 0.09%** | **99.43 ± 0.22%** | **99.78% / 99.78% / 99.97%** | **99.68% / 98.93% / 99.97%** | **0.40% / 100.00%** | 3.857 | 0.0073 |
+| **Logistic Regression** | 98.08 ± 0.26% | 97.02 ± 0.39% | 99.33% / 99.33% / 99.78% | 97.40% / 92.73% / 96.92% | 3.16% / 100.00% | **0.527** | **0.0016** |
+| **MLP Neural Net** | 98.92 ± 0.23% | 97.96 ± 0.45% | 98.22% / 98.23% / 99.74% | 99.08% / 96.33% / 99.12% | 0.84% / 99.47% | 1.741 | 0.0025 |
+
+**Key Honest Findings:**
+- **Base-Rate Precision Drop:** On Balanced Test, SVM (`class_weight='balanced'`) scores `98.66%` Macro F1 (`Bot` precision `1.000`). Under a realistic ~80% BENIGN distribution (`n=2,812`), its `2.62%` BENIGN false-positive rate misclassifies 28 benign flows as `Bot` (`precision=0.600`, `F1=0.730`) and 25 as `Web Attack` (`precision=0.550`, `F1=0.702`), pulling Natural Macro F1 down to **`92.93%`**.
+- **Tree Baselines Outperform RBF SVM:** `XGBoost` achieves `98.93%` Natural Macro F1, `0.40%` Benign FPR, and **12.5× faster inference** (`0.0073 ms/flow` vs `0.0916 ms/flow`). Train-only `SMOTE` also improves SVM Natural Macro F1 from `92.93%` to `94.81%` and cuts Benign FPR in half (`1.29%`).
+
+![Model Comparison](results/model_comparison.png)
+![SVM Natural Confusion Matrix](results/confusion_matrix_svm_natural.png)
+
+### 3. Leave-One-Attack-Out (LOAO) Zero-Day Evaluation (<55% Confidence Rule)
+
+Holding out one attack class at a time from SVM training demonstrates that **thresholding closed-world Platt probabilities at `<55%` is NOT a reliable zero-day detector**:
+
+| Held-Out Unseen Attack | Unseen Flows | Rejected as Anomaly (<55%) | Mapped to Other Attack (>=55%) | Missed as BENIGN (>=55%) | Mean Max Confidence |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Bot** | 180 | 18.89% | 24.44% | 56.67% | 77.31% |
+| **DDoS** | 540 | **0.00%** | 0.00% | **100.00%** | 91.25% |
+| **DoS** | 540 | 41.11% | 58.89% | 0.00% | 61.21% |
+| **FTP-Patator** | 135 | 32.59% | 62.22% | 5.19% | 66.55% |
+| **Heartbleed** | 45 | **0.00%** | 0.00% | **100.00%** | 91.15% |
+| **Infiltration** | 90 | **0.00%** | 1.11% | **98.89%** | 88.82% |
+| **PortScan** | 450 | 14.67% | 16.44% | 68.89% | 82.49% |
+| **SSH-Patator** | 135 | 7.41% | 92.59% | 0.00% | 83.66% |
+| **Web Attack** | 135 | **0.00%** | 4.44% | **95.56%** | 98.39% |
+| **Macro Average (9 attacks)** | — | **12.74%** | 28.90% | **58.36%** | — |
+
+- Closed-world Platt scaling assigns high probability (`88.8%–98.4%`) to unseen attack vectors that fall into the `BENIGN` half-space (100% miss rate on unseen `DDoS` and `Heartbleed`, 98.89% on `Infiltration`, 95.56% on `Web Attack`). Benign false-anomaly rejection averages `0.30%`. True open-set detection requires out-of-distribution / one-class anomaly models rather than closed-world probability cutoffs.
+- In `predict.py`, we also fixed the bug where `confidence < 55.0 and predicted_class != "BENIGN"` skipped low-confidence `BENIGN` predictions.
+
+![LOAO Zero-Day Breakdown](results/loao_zero_day_detection.png)
+
+### 4. Feature Importance (Permutation Importance & SHAP Top 15)
+
+Top features computed on the held-out test set (`results/feature_importance.json`):
+- **SVM Top Features (Permutation / KernelSHAP):** `Down/Up Ratio` (`0.17467 ± 0.01184`), `Destination Port` (`0.07148 ± 0.00576`, #1 in KernelSHAP `0.01059`), `Bwd Header Length`, `Subflow Bwd Packets`, `Total Backward Packets`, `Total Length of Fwd Packets`, `act_data_pkt_fwd`, `SYN Flag Count`.
+- **XGBoost Top Features (Permutation / TreeSHAP):** `Total Fwd Packets` (`0.15684` / `1.13487`), `Destination Port` (`0.11512` / `0.91482`), `Total Backward Packets` (`0.09244` / `0.43955`), `Down/Up Ratio`, `Flow Bytes/s`, `Flow IAT Mean`, `Flow Packets/s`, `Flow Duration`.
+
+![Permutation Importance Top 15](results/feature_importance_permutation_top15.png)
+![SHAP Top 15](results/feature_importance_shap_top15.png)
+
+### 5. Scapy vs. CICFlowMeter Parity Audit & Fixes
+
+Auditing `monitoring/flow_extractor.py` and `monitoring/packet_capture.py` against CICFlowMeter's specification exposed and resolved multiple mismatches:
+- **Payload vs. Ethernet Frame Length:** Replaced full L2 `len(pkt)` with transport payload bytes (`ip.len - ip.ihl*4 - transport_hdr_len`), ignoring Ethernet frame headers and padding.
+- **Sample Std (`ddof=1`) & Flow IAT Index:** Switched from `ddof=0` to Bessel-corrected `ddof=1` (`SummaryStatistics`), and fixed the packet-#1 bug that appended a spurious `0.0` IAT.
+- **PCAP Wire Timestamps:** Fixed `FlowAggregator` to use microsecond packet capture timestamps (`pkt.time`) instead of wall-clock `time.time()`, preventing catastrophic float64 cancellation at `1e9` epoch scale.
+- **Headers, TCP Windows, Directional Flags, Active/Idle & Subflows:** Parsed actual TCP `dataofs * 4` / UDP `8`-byte headers, `Init_Win_bytes_*` (`-1` default), `act_data_pkt_fwd` (`payload > 0`), directional `Fwd/Bwd PSH` & `URG`, `CWE`/`ECE`, 1s subflows, and 5s Active/Idle intervals.
+- **Known Residual Limitation:** `Down/Up Ratio` uses continuous float `bwd/fwd` in Python rather than CICFlowMeter's legacy Java integer floor division `int(bwd/fwd)`, which should be matched if running directly against raw Java CICFlowMeter exports. Verified on a multi-flow TCP/UDP PCAP across all 71 features in `tests/test_monitoring.py`.
+
+### Commands to Reproduce Everything
+
+```bash
+# Install evaluation dependencies (includes xgboost, shap, imbalanced-learn, scapy)
+pip install -r requirements-eval.txt
+
+# 1. Run full leakage audit, 5-fold CV, baseline comparisons, LOAO zero-day & SHAP/Permutation importance
+python evaluate_rigorous.py
+
+# 2. Retrain production SVM and regenerate leakage-free reports/
+python train_model.py
+python evaluation.py
+python day_wise_evaluation.py
+
+# 3. Verify all unit, API, pipeline, and Scapy CICFlowMeter PCAP parity tests
+pytest -v
 ```
 
 ---
 
 ## 🎓 Hardware Optimization & CSE Presentation Guide
 
-### Why Not Deep Learning (e.g. CNN / LSTM)?
-> *"Deep neural networks require GPU acceleration, millions of parameters, and introduce significant latency overhead (>5 ms/flow). Our RBF SVM achieves 98.50% accuracy with an inference latency of just 0.061 ms/flow, making it optimal for line-rate edge network intrusion detection."*
+### Tree Ensembles vs. RBF SVM & Deep Learning
+> *"On tabular 71-feature CIC-IDS2017 flows, gradient-boosted trees (`XGBoost`, 0.0073 ms/flow, 98.93% natural macro F1) outperform RBF SVM (0.0916 ms/flow, 92.93% natural macro F1) in both precision under class imbalance and CPU inference speed, without GPU overhead."*
 
-### How Was Class Imbalance Handled?
-> *"Rare attacks like Heartbleed and Infiltration represent <1% of the raw data. We handled this using Scikit-Learn's `class_weight='balanced'` in our SVM loss formulation, which scales penalties inversely proportional to class frequencies."*
+### How Class Imbalance Was Handled
+> *"Rare attacks like Heartbleed and Infiltration are heavily outweighed by BENIGN flows. Both `class_weight='balanced'` and train-only `SMOTE` (fit strictly inside CV folds after train/test splitting) were evaluated; train-only SMOTE reduced SVM's natural benign FPR from 2.62% to 1.29%."*
 
-### Why Day-Wise Testing Matters:
-> *"In the CIC-IDS2017 dataset, random train-test splitting can result in temporal data leakage if consecutive flows share TCP connection states. By performing day-wise evaluation across Monday through Friday, we demonstrated that detection rates remain >98% across completely distinct attack distributions."*
+### Temporal & Benchmark Validation Limits
+> *"Evaluating day-wise partitions on held-out flows avoids direct train/test row overlap, though true deployment generalization still requires evaluation against raw timestamped PCAP captures containing real non-synthetic traffic."*
 
 ---
 

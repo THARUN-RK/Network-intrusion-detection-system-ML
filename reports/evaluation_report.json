@@ -1,13 +1,15 @@
 {
-    "accuracy": 0.9835,
-    "macro_precision": 0.9642,
-    "weighted_precision": 0.9849,
-    "macro_recall": 0.9874,
-    "weighted_recall": 0.9835,
-    "macro_f1_score": 0.975,
-    "weighted_f1_score": 0.9838,
-    "prediction_latency_ms_per_record": 0.082,
-    "total_test_samples": 2000,
+    "accuracy": 0.984,
+    "macro_precision": 0.9623,
+    "weighted_precision": 0.986,
+    "macro_recall": 0.9919,
+    "weighted_recall": 0.984,
+    "macro_f1_score": 0.9759,
+    "weighted_f1_score": 0.9845,
+    "macro_pr_auc": 0.9943,
+    "weighted_pr_auc": 0.9979,
+    "prediction_latency_ms_per_record": 0.097,
+    "total_test_samples": 3000,
     "classes": [
         "BENIGN",
         "Bot",
@@ -22,84 +24,94 @@
     ],
     "per_class_metrics": {
         "BENIGN": {
-            "precision": 0.9959595959595959,
-            "recall": 0.9733464955577492,
-            "f1_score": 0.9845232151772342,
-            "support": 1013,
-            "false_positive_rate": 0.0041,
-            "false_negative_rate": 0.0267
+            "precision": 0.9979452054794521,
+            "recall": 0.9713333333333334,
+            "f1_score": 0.9844594594594595,
+            "support": 1500,
+            "false_positive_rate": 0.002,
+            "false_negative_rate": 0.0287,
+            "pr_auc": 0.9995
         },
         "Bot": {
-            "precision": 0.8532110091743119,
-            "recall": 1.0,
-            "f1_score": 0.9207920792079208,
-            "support": 93,
-            "false_positive_rate": 0.0084,
-            "false_negative_rate": 0.0
+            "precision": 0.8263888888888888,
+            "recall": 0.9916666666666667,
+            "f1_score": 0.9015151515151515,
+            "support": 120,
+            "false_positive_rate": 0.0087,
+            "false_negative_rate": 0.0083,
+            "pr_auc": 0.9871
         },
         "DDoS": {
             "precision": 1.0,
             "recall": 1.0,
             "f1_score": 1.0,
-            "support": 223,
+            "support": 360,
             "false_positive_rate": 0.0,
-            "false_negative_rate": 0.0
+            "false_negative_rate": 0.0,
+            "pr_auc": 1.0
         },
         "DoS": {
             "precision": 1.0,
             "recall": 1.0,
             "f1_score": 1.0,
-            "support": 244,
+            "support": 360,
             "false_positive_rate": 0.0,
-            "false_negative_rate": 0.0
+            "false_negative_rate": 0.0,
+            "pr_auc": 1.0
         },
         "FTP-Patator": {
-            "precision": 0.921875,
+            "precision": 0.967741935483871,
             "recall": 1.0,
-            "f1_score": 0.959349593495935,
-            "support": 59,
-            "false_positive_rate": 0.0026,
-            "false_negative_rate": 0.0
+            "f1_score": 0.9836065573770492,
+            "support": 90,
+            "false_positive_rate": 0.001,
+            "false_negative_rate": 0.0,
+            "pr_auc": 0.9752
         },
         "Heartbleed": {
             "precision": 1.0,
             "recall": 1.0,
             "f1_score": 1.0,
-            "support": 20,
+            "support": 30,
             "false_positive_rate": 0.0,
-            "false_negative_rate": 0.0
+            "false_negative_rate": 0.0,
+            "pr_auc": 1.0
         },
         "Infiltration": {
             "precision": 1.0,
             "recall": 1.0,
             "f1_score": 1.0,
-            "support": 36,
+            "support": 60,
             "false_positive_rate": 0.0,
-            "false_negative_rate": 0.0
+            "false_negative_rate": 0.0,
+            "pr_auc": 1.0
         },
         "PortScan": {
             "precision": 1.0,
             "recall": 1.0,
             "f1_score": 1.0,
-            "support": 194,
+            "support": 300,
             "false_positive_rate": 0.0,
-            "false_negative_rate": 0.0
+            "false_negative_rate": 0.0,
+            "pr_auc": 1.0
         },
         "SSH-Patator": {
-            "precision": 0.9824561403508771,
-            "recall": 0.9824561403508771,
-            "f1_score": 0.9824561403508771,
-            "support": 57,
-            "false_positive_rate": 0.0005,
-            "false_negative_rate": 0.0175
+            "precision": 0.978021978021978,
+            "recall": 0.9888888888888889,
+            "f1_score": 0.9834254143646409,
+            "support": 90,
+            "false_positive_rate": 0.0007,
+            "false_negative_rate": 0.0111,
+            "pr_auc": 0.9999
         },
         "Web Attack": {
-            "precision": 0.8888888888888888,
-            "recall": 0.9180327868852459,
-            "f1_score": 0.9032258064516129,
-            "support": 61,
-            "false_positive_rate": 0.0036,
-            "false_negative_rate": 0.082
+            "precision": 0.8529411764705882,
+            "recall": 0.9666666666666667,
+            "f1_score": 0.90625,
+            "support": 90,
+            "false_positive_rate": 0.0052,
+            "false_negative_rate": 0.0333,
+            "pr_auc": 0.9814
         }
     }
 }

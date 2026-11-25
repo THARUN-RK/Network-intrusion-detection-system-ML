@@ -3,11 +3,11 @@
     "kernel": "rbf",
     "best_params": {
         "classifier__C": 10,
-        "classifier__gamma": "scale"
+        "classifier__gamma": 0.01
     },
-    "cv_folds": 3,
-    "cv_macro_f1": 0.9736936822734134,
-    "training_duration_seconds": 13.96,
+    "cv_folds": 5,
+    "cv_macro_f1": 0.9734490102247957,
+    "training_duration_seconds": 56.61,
     "feature_count": 71,
     "feature_names": [
         "Destination Port",
@@ -94,5 +94,22 @@
         "SSH-Patator",
         "Web Attack"
     ],
-    "training_samples_count": 6400
+    "training_samples_count": 12000,
+    "cleaning_audit": {
+        "raw_rows": 15000,
+        "inf_nan_rows_dropped": 0,
+        "inf_nan_rows_found": 0,
+        "exact_row_label_duplicates_found": 0,
+        "feature_duplicates_dropped": 0,
+        "conflicting_label_duplicates": 0,
+        "clean_rows": 15000
+    },
+    "split_audit": {
+        "train_rows": 12000,
+        "test_rows": 3000,
+        "index_overlap": 0,
+        "feature_hash_overlap": 0
+    },
+    "test_split_ratio": 0.2,
+    "random_state": 42
 }

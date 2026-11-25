@@ -12,6 +12,7 @@ DATASET_RAW_DIR = BASE_DIR / "dataset" / "raw"
 DATASET_PROCESSED_DIR = BASE_DIR / "dataset" / "processed"
 MODELS_DIR = BASE_DIR / "models"
 REPORTS_DIR = BASE_DIR / "reports"
+RESULTS_DIR = BASE_DIR / "results"
 LOGS_DIR = BASE_DIR / "logs"
 
 # Database Configuration
