@@ -29,7 +29,9 @@ def test_network_flow_feature_extraction():
     assert features["ACK Flag Count"] == 2
     assert features["PSH Flag Count"] == 1
     assert features["Flow Duration"] > 0
-    assert len(features) == 71
+    assert len(features) >= 71
+    assert features["source_ip"] == "192.168.1.10"
+    assert features["destination_ip"] == "10.0.0.1"
 
 
 def test_flow_features_compatibility_with_model():

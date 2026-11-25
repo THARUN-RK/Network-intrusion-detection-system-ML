@@ -1,5 +1,6 @@
 """
 Pydantic schemas for FastAPI request and response validation.
+Upgraded with SOC Incident Tracking, IP Reputation, and Severity Level Indicators.
 """
 
 from typing import Dict, Any, List, Optional
@@ -10,7 +11,10 @@ class FlowFeatures(BaseModel):
     """Schema for individual network flow feature input."""
     model_config = ConfigDict(populate_by_name=True, extra="allow")
 
+    source_ip: Optional[str] = Field(default="192.168.1.100", alias="Source IP")
+    destination_ip: Optional[str] = Field(default="10.0.0.1", alias="Destination IP")
     destination_port: Optional[int] = Field(default=80, alias="Destination Port")
+    protocol: Optional[str] = Field(default="TCP", alias="Protocol")
     flow_duration: Optional[float] = Field(default=1000.0, alias="Flow Duration")
     total_fwd_packets: Optional[int] = Field(default=5, alias="Total Fwd Packets")
     total_backward_packets: Optional[int] = Field(default=5, alias="Total Backward Packets")
@@ -27,6 +31,11 @@ class PredictionResponse(BaseModel):
     prediction: str
     status: str
     confidence: float
+    severity: Optional[str] = "LOW"
+    is_anomaly: Optional[bool] = False
+    source_ip: Optional[str] = "192.168.1.100"
+    destination_ip: Optional[str] = "10.0.0.1"
+    protocol: Optional[str] = "TCP"
     probabilities: Optional[Dict[str, float]] = None
 
 
@@ -47,9 +56,11 @@ class OverviewAnalyticsResponse(BaseModel):
     total_records_analysed: int
     total_normal_connections: int
     total_detected_attacks: int
+    total_anomalies_detected: Optional[int] = 0
     attack_detection_percentage: float
     most_frequent_attack: str
     category_distribution: Dict[str, int]
+    severity_distribution: Optional[Dict[str, int]] = None
 
 
 class ModelInfoResponse(BaseModel):
@@ -69,3 +80,52 @@ class HealthResponse(BaseModel):
     status: str
     model_loaded: bool
     version: str
+
+
+# ==============================================================================
+# SOC INCIDENT & IP REPUTATION SCHEMAS
+# ==============================================================================
+
+class IncidentCreateRequest(BaseModel):
+    title: str
+    description: str
+    severity: str = "HIGH"
+    source_ip: Optional[str] = "Unknown"
+    target_ip: Optional[str] = "Unknown"
+    assigned_to: Optional[str] = "Unassigned"
+
+
+class IncidentUpdateRequest(BaseModel):
+    status: str
+    notes: Optional[str] = None
+
+
+class IncidentResponse(BaseModel):
+    id: int
+    incident_code: str
+    title: str
+    description: Optional[str] = None
+    severity: str
+    status: str
+    assigned_to: str
+    source_ip: Optional[str] = None
+    target_ip: Optional[str] = None
+    created_at: str
+    updated_at: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class IPReputationResponse(BaseModel):
+    ip_address: str
+    total_flows: int
+    attack_count: int
+    reputation_score: float
+    threat_level: str
+    is_blocked: bool
+    country: str
+    last_seen: str
+
+
+class IPBlockRequest(BaseModel):
+    ip_address: str
+    block: bool

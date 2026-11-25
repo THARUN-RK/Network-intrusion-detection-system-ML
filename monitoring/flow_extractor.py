@@ -84,6 +84,10 @@ class NetworkFlow:
         flow_pkts_s = (total_packets / (duration_us / 1e6)) if duration_us > 0 else 0.0
         
         return {
+            "source_ip": self.key[0],
+            "destination_ip": self.key[1],
+            "source_port": self.key[2],
+            "protocol": self.key[4],
             "Destination Port": self.key[3],
             "Flow Duration": duration_us,
             "Total Fwd Packets": self.fwd_packets,

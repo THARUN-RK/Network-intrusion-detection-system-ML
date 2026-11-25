@@ -1,6 +1,21 @@
 version: '3.8'
 
 services:
+  # Optional Production PostgreSQL Database (Comment out to use default SQLite)
+  nids-postgres:
+    image: postgres:15-alpine
+    container_name: nids_soc_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nids_soc
+      POSTGRES_USER: soc_admin
+      POSTGRES_PASSWORD: SocSecretPassword2026!
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # FastAPI REST & WebSocket Backend
   nids-backend:
     build: .
     container_name: nids_fastapi_backend
@@ -13,7 +28,12 @@ services:
       - ./models:/app/models
     environment:
       - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql://soc_admin:SocSecretPassword2026!@nids-postgres:5432/nids_soc
+      - JWT_SECRET_KEY=nids-production-secret-key-2026
+    depends_on:
+      - nids-postgres
 
+  # Streamlit SOC Frontend Dashboard
   nids-dashboard:
     build: .
     container_name: nids_streamlit_dashboard
@@ -25,3 +45,7 @@ services:
       - nids-backend
     environment:
       - NIDS_API_URL=http://nids-backend:8000
+      - DATABASE_URL=postgresql://soc_admin:SocSecretPassword2026!@nids-postgres:5432/nids_soc
+
+volumes:
+  postgres_data:

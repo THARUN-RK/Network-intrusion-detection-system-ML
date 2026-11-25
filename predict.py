@@ -4,6 +4,7 @@ Loads the trained multiclass SVM pipeline, validates incoming network features,
 computes class probabilities, and determines security status.
 """
 
+import os
 import json
 import logging
 from pathlib import Path
@@ -20,9 +21,14 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger(__name__)
 
 
+# Confidence threshold below which traffic is flagged as an unknown anomaly (Zero-Day defense)
+ANOMALY_CONFIDENCE_THRESHOLD = float(os.getenv("ANOMALY_THRESHOLD", "55.0"))
+
+
 class NIDSPredictor:
     """
     Production-grade inference engine for network flow attack classification.
+    Supports unknown traffic rejection, confidence calibration, and IP tracking.
     """
     def __init__(
         self,
@@ -84,18 +90,13 @@ class NIDSPredictor:
         self,
         record: Dict[str, Any],
         record_id: Optional[str] = None,
+        source_ip: Optional[str] = None,
+        destination_ip: Optional[str] = None,
+        protocol: Optional[str] = None,
         log_to_db: bool = True
     ) -> Dict[str, Any]:
         """
-        Classifies a single network flow record.
-        
-        Returns:
-            {
-                "prediction": "DDoS",
-                "status": "ATTACK",
-                "confidence": 98.4,
-                "probabilities": {...}
-            }
+        Classifies a single network flow record with confidence calibration and unknown traffic rejection.
         """
         df_single = pd.DataFrame([record])
         df_aligned = self.validate_and_align_features(df_single)
@@ -115,12 +116,29 @@ class NIDSPredictor:
         else:
             confidence = 100.0
             
-        security_status = "BENIGN" if predicted_class == "BENIGN" else "ATTACK"
+        # Unknown Traffic Rejection (Zero-day defense)
+        is_anomaly = False
+        if confidence < ANOMALY_CONFIDENCE_THRESHOLD and predicted_class != "BENIGN":
+            is_anomaly = True
+            predicted_class = "ANOMALY (Unknown Threat)"
+            security_status = "ATTACK"
+        else:
+            security_status = "BENIGN" if predicted_class == "BENIGN" else "ATTACK"
+            
+        src_ip = source_ip or record.get("source_ip", record.get("Source IP", "192.168.1.100"))
+        dst_ip = destination_ip or record.get("destination_ip", record.get("Destination IP", "10.0.0.1"))
+        proto = protocol or record.get("protocol", record.get("Protocol", "TCP"))
+        sev = database.map_severity(predicted_class, confidence, is_anomaly)
         
         result = {
             "prediction": predicted_class,
             "status": security_status,
             "confidence": confidence,
+            "severity": sev,
+            "is_anomaly": is_anomaly,
+            "source_ip": src_ip,
+            "destination_ip": dst_ip,
+            "protocol": proto,
             "probabilities": prob_dict,
             "record_id": record_id or f"flow-{int(pd.Timestamp.now().timestamp()*1000)}"
         }
@@ -131,8 +149,12 @@ class NIDSPredictor:
                 confidence=confidence,
                 security_status=security_status,
                 record_identifier=result["record_id"],
-                destination_port=int(record.get("Destination Port", 0)) if "Destination Port" in record else None,
-                flow_duration=float(record.get("Flow Duration", 0.0)) if "Flow Duration" in record else None,
+                destination_port=int(record.get("Destination Port", 80)) if "Destination Port" in record else 80,
+                flow_duration=float(record.get("Flow Duration", 0.0)) if "Flow Duration" in record else 0.0,
+                source_ip=src_ip,
+                destination_ip=dst_ip,
+                protocol=proto,
+                is_anomaly=is_anomaly,
                 metadata={"probabilities": prob_dict}
             )
             
@@ -166,14 +188,26 @@ class NIDSPredictor:
             else:
                 conf = 100.0
                 
-            sec_status = "BENIGN" if pred_class == "BENIGN" else "ATTACK"
+            is_ano = False
+            if conf < ANOMALY_CONFIDENCE_THRESHOLD and pred_class != "BENIGN":
+                is_ano = True
+                pred_class = "ANOMALY (Unknown Threat)"
+                sec_status = "ATTACK"
+            else:
+                sec_status = "BENIGN" if pred_class == "BENIGN" else "ATTACK"
+                
             rec_id = f"batch-flow-{i+1}"
+            src_ip = str(df_batch.iloc[i].get("Source IP", df_batch.iloc[i].get("source_ip", "192.168.1.100")))
+            dst_ip = str(df_batch.iloc[i].get("Destination IP", df_batch.iloc[i].get("destination_ip", "10.0.0.1")))
             
             res_item = {
                 "record_id": rec_id,
                 "prediction": pred_class,
                 "status": sec_status,
-                "confidence": conf
+                "confidence": conf,
+                "is_anomaly": is_ano,
+                "source_ip": src_ip,
+                "destination_ip": dst_ip
             }
             results.append(res_item)
             
@@ -183,8 +217,11 @@ class NIDSPredictor:
                     "predicted_category": pred_class,
                     "confidence": conf,
                     "security_status": sec_status,
-                    "destination_port": int(df_batch.iloc[i].get("Destination Port", 0)) if "Destination Port" in df_batch.columns else None,
-                    "flow_duration": float(df_batch.iloc[i].get("Flow Duration", 0.0)) if "Flow Duration" in df_batch.columns else None
+                    "is_anomaly": is_ano,
+                    "source_ip": src_ip,
+                    "destination_ip": dst_ip,
+                    "destination_port": int(df_batch.iloc[i].get("Destination Port", 80)) if "Destination Port" in df_batch.columns else 80,
+                    "flow_duration": float(df_batch.iloc[i].get("Flow Duration", 0.0)) if "Flow Duration" in df_batch.columns else 0.0
                 })
                 
         if log_to_db and db_records:

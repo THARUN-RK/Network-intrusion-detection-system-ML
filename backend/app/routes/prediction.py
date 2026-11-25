@@ -4,6 +4,7 @@ FastAPI Routes: Prediction Endpoints (/predict, /predict/batch)
 
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any
+import asyncio
 
 from backend.app.schemas import (
     FlowFeatures,
@@ -12,6 +13,7 @@ from backend.app.schemas import (
     BatchPredictionResponse
 )
 from backend.app.services.model_service import get_model_service, ModelService
+from backend.app.websocket_manager import ws_manager
 
 router = APIRouter(tags=["Prediction"])
 
@@ -26,6 +28,16 @@ def predict_single(flow: FlowFeatures, service: ModelService = Depends(get_model
         data.update(extra)
         
         result = service.predict_flow(data)
+        
+        # Real-time WebSocket alert broadcast
+        if result.get("status") == "ATTACK" or result.get("is_anomaly"):
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(ws_manager.broadcast_alert(result))
+            except Exception:
+                pass
+                
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
