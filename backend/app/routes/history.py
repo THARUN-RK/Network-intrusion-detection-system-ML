@@ -5,6 +5,7 @@ FastAPI Routes: Prediction History & Incident Alerts
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Dict, Any, Optional
 import database
+from backend.app.simulator import traffic_simulator
 
 router = APIRouter(tags=["History & Alerts"])
 
@@ -41,6 +42,7 @@ def get_alerts(
 ):
     """Retrieves recent security incident alerts, with optional since_id polling filter."""
     try:
+        traffic_simulator.catch_up_sync()
         limit_val = limit if isinstance(limit, int) else 20
         since_id_val = since_id if isinstance(since_id, int) else None
         alerts = database.get_recent_alerts(limit=limit_val, since_id=since_id_val)

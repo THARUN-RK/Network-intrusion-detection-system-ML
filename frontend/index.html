@@ -140,6 +140,14 @@
             background: rgba(14, 165, 233, 0.15);
             color: #38bdf8;
             border: 1px solid rgba(14, 165, 233, 0.35);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sim-badge.stopped {
+            background: rgba(244, 63, 94, 0.15);
+            color: #fb7185;
+            border: 1px solid rgba(244, 63, 94, 0.4);
         }
 
         .last-updated {
@@ -2078,7 +2086,46 @@
             loadTimeseries();
             loadAlerts();
             loadIPs();
+            checkSimulatorHealth();
             initStream();
+        }
+
+        // Honest Simulator Health & Status Check
+        async function checkSimulatorHealth() {
+            try {
+                const res = await fetch('/health');
+                if (!res.ok) return;
+                const d = await res.json();
+                const badge = document.getElementById('sim-badge');
+                if (!badge) return;
+
+                let isActive = false;
+                let reason = "Simulator not running or idle";
+
+                if (d.simulator_running && d.last_tick_at) {
+                    const lastTick = new Date(d.last_tick_at.replace(" ", "T") + (d.last_tick_at.includes("Z") ? "" : "Z"));
+                    const diffSec = Math.max(0, Math.floor((new Date() - lastTick) / 1000));
+                    if (diffSec <= 10) {
+                        isActive = true;
+                    } else {
+                        reason = `Simulator idle for ${diffSec}s (last tick was ${diffSec}s ago). ${d.last_error || ''}`;
+                    }
+                } else {
+                    reason = d.last_error || (d.simulator_running ? "Simulator starting up..." : "Simulator disabled or stopped");
+                }
+
+                if (isActive) {
+                    badge.className = "sim-badge";
+                    badge.innerText = `⚡ SIMULATION ACTIVE (${Number(d.flows_generated || 0).toLocaleString()} flows)`;
+                    badge.title = "Replaying real CIC-IDS2017 benchmark flows through SVM model in real time";
+                } else {
+                    badge.className = "sim-badge stopped";
+                    badge.innerText = `⚠️ SIMULATION STOPPED`;
+                    badge.title = reason;
+                }
+            } catch (e) {
+                console.warn("Could not check simulator health:", e);
+            }
         }
 
         // Initialize Everything on Load
@@ -2086,6 +2133,7 @@
             initTimelineChart();
             initDoughnutChart();
             loadModelMetrics();
+            checkSimulatorHealth();
             loadStats();
             loadTimeseries();
             loadAlerts();
@@ -2093,6 +2141,7 @@
             initStream();
 
             // Periodic polling fallback
+            setInterval(checkSimulatorHealth, 4000);
             setInterval(loadStats, 3000);
             setInterval(loadTimeseries, 15000);
             setInterval(loadIPs, 10000);

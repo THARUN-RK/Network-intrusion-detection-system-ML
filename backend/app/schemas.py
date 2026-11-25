@@ -80,6 +80,10 @@ class HealthResponse(BaseModel):
     status: str
     model_loaded: bool
     version: str
+    simulator_running: bool = False
+    last_tick_at: Optional[str] = None
+    flows_generated: int = 0
+    last_error: Optional[str] = None
 
 
 # ==============================================================================

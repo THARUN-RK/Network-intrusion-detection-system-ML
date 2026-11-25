@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
     traffic_simulator.start()
     yield
     # Graceful shutdown
-    traffic_simulator.stop()
+    await traffic_simulator.stop_async()
 
 
 app = FastAPI(
@@ -91,7 +91,11 @@ def health_check():
     return {
         "status": "healthy",
         "model_loaded": predict.get_predictor().pipeline is not None,
-        "version": "2.0.0"
+        "version": "2.0.0",
+        "simulator_running": traffic_simulator.running,
+        "last_tick_at": traffic_simulator.last_tick_at,
+        "flows_generated": traffic_simulator.flows_generated,
+        "last_error": traffic_simulator.last_error
     }
 
 

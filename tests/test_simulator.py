@@ -150,3 +150,35 @@ def test_model_metrics_endpoint():
     report_resp = download_model_report()
     assert report_resp is not None
 
+
+def test_app_simulator_lifecycle_integration():
+    import time
+    from backend.app.main import health_check
+    from backend.app.simulator import traffic_simulator
+    from backend.app.routes.api_live import get_live_soc_stats
+
+    # Check initial records
+    s0 = get_live_soc_stats(window_minutes=5)
+    initial_flows = s0["total_flows"]
+
+    # Start simulator
+    traffic_simulator.running = True
+    traffic_simulator.catch_up_sync(max_catchup=4)
+    time.sleep(6.0)
+    # Simulator / catch-up generates flows
+    traffic_simulator.catch_up_sync(max_catchup=4)
+
+    # Assert health diagnostics
+    h = health_check()
+    assert h["simulator_running"] is True
+    assert h["last_tick_at"] is not None
+    assert h["flows_generated"] > 0
+
+    # Assert total records increased
+    s1 = get_live_soc_stats(window_minutes=5)
+    new_flows = s1["total_flows"]
+    assert new_flows > initial_flows, f"Expected total flows to increase from {initial_flows}, got {new_flows}"
+
+
+
+

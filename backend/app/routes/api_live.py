@@ -27,6 +27,7 @@ def get_live_soc_stats(window_minutes: int = Query(5, ge=1, le=60)):
     detection percentage, flows per minute, trend, and attack class counts in the last 5 minutes.
     """
     try:
+        simulator.traffic_simulator.catch_up_sync()
         return database.get_live_stats(window_minutes=window_minutes)
     except Exception as e:
         logger.error(f"Error fetching live stats: {e}")
@@ -39,6 +40,7 @@ def get_live_soc_timeseries(window_minutes: int = Query(30, ge=5, le=120)):
     Returns minute-by-minute breakdown of total, benign, and attack flows for the last 30 minutes.
     """
     try:
+        simulator.traffic_simulator.catch_up_sync()
         return database.get_timeseries_stats(window_minutes=window_minutes)
     except Exception as e:
         logger.error(f"Error fetching timeseries stats: {e}")

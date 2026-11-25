@@ -17,6 +17,8 @@ dataset/raw/*.csv
 dataset/processed/*.csv
 !dataset/raw/.gitkeep
 !dataset/processed/.gitkeep
+!data/*.csv
+!data/.gitkeep
 
 # Machine Learning Trained Artifacts (track compressed svm_model.pkl, ignore huge external weights)
 models/*.joblib

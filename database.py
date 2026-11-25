@@ -35,13 +35,32 @@ Base = declarative_base()
 
 # Multi-Database Configuration
 # Reads DATABASE_URL from environment (e.g. PostgreSQL on Render/AWS) or defaults to SQLite
-DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{config.DATABASE_PATH.as_posix()}")
+def resolve_database_url() -> str:
+    env_url = os.getenv("DATABASE_URL")
+    if env_url:
+        if env_url.startswith("postgres://"):
+            env_url = env_url.replace("postgres://", "postgresql://", 1)
+        logger.info(f"Using external DATABASE_URL: {env_url.split('@')[-1] if '@' in env_url else 'configured'}")
+        return env_url
 
-# Handle Render's postgres:// prefix -> postgresql:// for SQLAlchemy compatibility
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    target_path = config.DATABASE_PATH
+    try:
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        test_file = target_path.parent / ".perm_check"
+        with open(test_file, "w") as f:
+            f.write("ok")
+        test_file.unlink(missing_ok=True)
+    except Exception as e:
+        logger.warning(f"Default database directory {target_path.parent} not writable ({e}). Falling back to /tmp/predictions.db")
+        target_path = Path("/tmp") / "predictions.db"
+        target_path.parent.mkdir(parents=True, exist_ok=True)
 
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+    logger.info(f"Using SQLite database path: {target_path.resolve().as_posix()}")
+    return f"sqlite:///{target_path.as_posix()}"
+
+DATABASE_URL = resolve_database_url()
+
+connect_args = {"check_same_thread": False, "timeout": 15} if DATABASE_URL.startswith("sqlite") else {}
 
 engine = create_engine(DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
 SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
@@ -225,9 +244,10 @@ def init_db(db_path: Optional[Path] = None) -> None:
             session.commit()
             logger.info("Seeded default SOC users: 'admin' and 'analyst'")
 
-        # Seed baseline network traffic flows if empty
+        # Seed baseline network traffic flows ONLY if DEMO_SEED=true
+        demo_seed_enabled = os.getenv("DEMO_SEED", "false").lower() in ["true", "1", "yes"]
         pred_count = session.query(PredictionModel).count()
-        if pred_count == 0:
+        if pred_count == 0 and demo_seed_enabled:
             seed_flows = [
                 ("BENIGN", 99.4, "BENIGN", "LOW", False, "192.168.1.105", "142.250.190.46", 49152, 443, "TCP", 1240.0),
                 ("BENIGN", 98.2, "BENIGN", "LOW", False, "192.168.1.102", "192.168.1.1", 51220, 80, "TCP", 850.0),
@@ -243,7 +263,7 @@ def init_db(db_path: Optional[Path] = None) -> None:
                 ("Infiltration", 99.1, "ATTACK", "CRITICAL", False, "172.16.0.4", "10.0.0.10", 49800, 445, "TCP", 7600.0),
             ]
             for cat, conf, sec_st, sev, is_ano, src_ip, dst_ip, s_port, d_port, proto, dur in seed_flows:
-                rec_id = f"flow-{src_ip}-{dst_ip}-{s_port}-{d_port}"
+                rec_id = f"demo-{src_ip}-{dst_ip}-{s_port}-{d_port}"
                 pred_obj = PredictionModel(
                     record_identifier=rec_id,
                     predicted_category=cat,
@@ -256,7 +276,8 @@ def init_db(db_path: Optional[Path] = None) -> None:
                     source_port=s_port,
                     destination_port=d_port,
                     protocol=proto,
-                    flow_duration=dur
+                    flow_duration=dur,
+                    metadata_json=json.dumps({"source": "demo"})
                 )
                 session.add(pred_obj)
                 session.flush()
@@ -271,7 +292,7 @@ def init_db(db_path: Optional[Path] = None) -> None:
                         status="NEW",
                         source_ip=src_ip,
                         destination_ip=dst_ip,
-                        description=f"Automated threat triage: {cat} detected with {conf:.1f}% confidence."
+                        description=f"[Demo Baseline] Automated threat triage: {cat} detected with {conf:.1f}% confidence."
                     )
                     session.add(alert_obj)
 
@@ -291,7 +312,9 @@ def init_db(db_path: Optional[Path] = None) -> None:
                     session.add(ip_entry)
 
             session.commit()
-            logger.info("Seeded initial baseline network flows and security alerts.")
+            logger.info("Seeded initial demo baseline network flows and security alerts (DEMO_SEED=true).")
+        elif pred_count == 0:
+            logger.info("Database initialized without demo seeding (DEMO_SEED is false). Waiting for live/simulated traffic.")
     except Exception as e:
         session.rollback()
         logger.error(f"Error seeding default users: {e}")
