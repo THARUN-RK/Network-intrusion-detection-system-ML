@@ -11,8 +11,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import database
 import predict
 from backend.app.schemas import HealthResponse, ModelInfoResponse
-from backend.app.routes import prediction, analytics, history, auth_routes, soc_routes
+from backend.app.routes import prediction, analytics, history, auth_routes, soc_routes, api_live
 from backend.app.websocket_manager import ws_manager
+from backend.app.simulator import traffic_simulator
 
 
 @asynccontextmanager
@@ -20,7 +21,11 @@ async def lifespan(app: FastAPI):
     # Application startup: verify database and model loading
     database.init_db()
     predictor = predict.get_predictor()
+    # Start real-time background traffic simulator
+    traffic_simulator.start()
     yield
+    # Graceful shutdown
+    traffic_simulator.stop()
 
 
 app = FastAPI(
@@ -47,6 +52,7 @@ app.include_router(soc_routes.router)
 app.include_router(prediction.router)
 app.include_router(analytics.router)
 app.include_router(history.router)
+app.include_router(api_live.router)
 
 INDEX_HTML_PATH = Path(__file__).resolve().parent.parent.parent / "frontend" / "index.html"
 

@@ -35,11 +35,15 @@ def get_history(
 
 
 @router.get("/alerts")
-def get_alerts(limit: int = Query(default=20, ge=1, le=100)):
-    """Retrieves recent security incident alerts."""
+def get_alerts(
+    limit: int = Query(default=20, ge=1, le=100),
+    since_id: Optional[int] = Query(default=None, ge=0)
+):
+    """Retrieves recent security incident alerts, with optional since_id polling filter."""
     try:
         limit_val = limit if isinstance(limit, int) else 20
-        alerts = database.get_recent_alerts(limit=limit_val)
+        since_id_val = since_id if isinstance(since_id, int) else None
+        alerts = database.get_recent_alerts(limit=limit_val, since_id=since_id_val)
         return {"total_alerts": len(alerts), "alerts": alerts}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

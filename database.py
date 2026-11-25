@@ -12,13 +12,13 @@ Maintains models for:
 import os
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
 def utc_now():
-    """Returns timezone-aware UTC datetime."""
-    return datetime.now(timezone.utc)
+    """Returns timezone-naive UTC datetime for seamless SQLite & PostgreSQL interoperability."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 from sqlalchemy import (
     create_engine, Column, Integer, String, Float, DateTime, Text, Boolean, ForeignKey, Index, desc, func
@@ -316,37 +316,87 @@ def map_severity(category: str, confidence: float, is_anomaly: bool = False) -> 
     return "MEDIUM" if confidence >= 75.0 else "LOW"
 
 
-def update_ip_profile(session, ip: str, is_attack: bool) -> None:
-    """Updates behavioral profiling and reputation score of an IP address."""
+def update_ip_profile(session, ip: str, is_attack: bool, severity: str = "LOW") -> None:
+    """
+    Updates behavioral profiling and reputation score of an IP address.
+    Malicious flows lower the score weighted by severity, benign flows slowly raise it,
+    and idle scores gradually recover toward neutral.
+    Auto-blocks when score drops below threshold (35.0).
+    """
     if not ip or ip in ["Unknown", "127.0.0.1", "localhost"]:
         return
         
     profile = session.query(IPReputationModel).filter_by(ip_address=ip).first()
+    now = utc_now()
+    severity_penalties = {"CRITICAL": 25.0, "HIGH": 15.0, "MEDIUM": 8.0, "LOW": 4.0}
+
     if not profile:
+        penalty = severity_penalties.get(severity, 10.0) if is_attack else 0.0
+        score = max(0.0, 100.0 - penalty)
+        th_level = "MALICIOUS" if score < 40.0 else ("SUSPICIOUS" if score < 75.0 else "SAFE")
         profile = IPReputationModel(
             ip_address=ip,
             total_flows=1,
             attack_count=1 if is_attack else 0,
-            reputation_score=70.0 if is_attack else 100.0,
-            threat_level="SUSPICIOUS" if is_attack else "SAFE"
+            reputation_score=score,
+            threat_level=th_level,
+            is_blocked=(score < 35.0 or severity == "CRITICAL"),
+            last_seen=now
         )
         session.add(profile)
     else:
         profile.total_flows += 1
+
+        # Time decay recovery: gradual return toward neutral (70.0) if idle > 15 minutes and not blocked
+        if profile.last_seen and not profile.is_blocked:
+            last_dt = profile.last_seen.replace(tzinfo=None) if profile.last_seen.tzinfo else profile.last_seen
+            now_dt = now.replace(tzinfo=None) if now.tzinfo else now
+            elapsed_sec = (now_dt - last_dt).total_seconds()
+            if elapsed_sec > 900:  # 15 minutes
+                intervals = min(5, int(elapsed_sec / 900))
+                if profile.reputation_score < 70.0:
+                    profile.reputation_score = min(70.0, profile.reputation_score + (intervals * 2.0))
+
         if is_attack:
             profile.attack_count += 1
-            # Penalize reputation score proportionally
-            profile.reputation_score = max(0.0, profile.reputation_score - 15.0)
+            penalty = severity_penalties.get(severity, 10.0)
+            profile.reputation_score = max(0.0, profile.reputation_score - penalty)
         else:
             profile.reputation_score = min(100.0, profile.reputation_score + 0.5)
-            
-        profile.last_seen = utc_now()
+
+        profile.last_seen = now
         if profile.reputation_score < 40.0:
             profile.threat_level = "MALICIOUS"
         elif profile.reputation_score < 75.0:
             profile.threat_level = "SUSPICIOUS"
         else:
             profile.threat_level = "SAFE"
+
+        # Automated firewall enforcement
+        if profile.reputation_score <= 35.0 and not profile.is_blocked:
+            profile.is_blocked = True
+            logger.warning(f"[Firewall Auto-Block] IP {ip} reputation fell to {profile.reputation_score:.1f}. IP blocked.")
+
+
+def prune_old_predictions(session, max_records: int = 10000) -> int:
+    """Enforces table size cap by pruning the oldest predictions."""
+    try:
+        count = session.query(func.count(PredictionModel.id)).scalar()
+        if count and count > max_records:
+            excess = count - max_records
+            oldest_ids = [
+                r[0] for r in session.query(PredictionModel.id)
+                .order_by(PredictionModel.id.asc())
+                .limit(excess)
+                .all()
+            ]
+            if oldest_ids:
+                session.query(PredictionModel).filter(PredictionModel.id.in_(oldest_ids)).delete(synchronize_session=False)
+                session.commit()
+                return len(oldest_ids)
+    except Exception as e:
+        logger.error(f"Error pruning old predictions: {e}")
+    return 0
 
 
 def save_prediction(
@@ -406,11 +456,15 @@ def save_prediction(
                 description=alert_desc
             )
             session.add(alert)
-            update_ip_profile(session, src_ip, is_attack=True)
+            update_ip_profile(session, src_ip, is_attack=True, severity=severity)
         else:
-            update_ip_profile(session, src_ip, is_attack=False)
+            update_ip_profile(session, src_ip, is_attack=False, severity=severity)
             
         session.commit()
+
+        if pred_id % 50 == 0:
+            prune_old_predictions(session, max_records=10000)
+
         return pred_id
     except Exception as e:
         session.rollback()
@@ -526,11 +580,14 @@ def get_prediction_history(
         session.close()
 
 
-def get_recent_alerts(limit: int = 20, db_path: Optional[Path] = None) -> List[Dict[str, Any]]:
-    """Fetches real-time security alerts."""
+def get_recent_alerts(limit: int = 20, since_id: Optional[int] = None, db_path: Optional[Path] = None) -> List[Dict[str, Any]]:
+    """Fetches real-time security alerts with optional since_id filtering."""
     session = SessionLocal()
     try:
-        rows = session.query(SecurityAlertModel).order_by(desc(SecurityAlertModel.id)).limit(limit).all()
+        query = session.query(SecurityAlertModel)
+        if isinstance(since_id, int) and since_id > 0:
+            query = query.filter(SecurityAlertModel.id > since_id)
+        rows = query.order_by(desc(SecurityAlertModel.id)).limit(limit).all()
         return [
             {
                 "id": r.id,
@@ -605,6 +662,98 @@ def get_overview_statistics(db_path: Optional[Path] = None) -> Dict[str, Any]:
             "category_distribution": category_distribution,
             "severity_distribution": severity_distribution
         }
+    finally:
+        session.close()
+
+
+def get_live_stats(window_minutes: int = 5) -> Dict[str, Any]:
+    """Computes real-time SOC metrics, rate per minute, and window activity."""
+    session = SessionLocal()
+    try:
+        now = utc_now()
+        window_start = now - timedelta(minutes=window_minutes)
+        prev_window_start = now - timedelta(minutes=window_minutes * 2)
+
+        total_flows = session.query(func.count(PredictionModel.id)).scalar() or 0
+        benign_cnt = session.query(func.count(PredictionModel.id)).filter(PredictionModel.security_status == "BENIGN").scalar() or 0
+        attack_cnt = session.query(func.count(PredictionModel.id)).filter(PredictionModel.security_status == "ATTACK").scalar() or 0
+        det_pct = round((attack_cnt / total_flows * 100.0), 1) if total_flows > 0 else 0.0
+
+        # Flows within current window (last 5 min)
+        window_flows = session.query(func.count(PredictionModel.id)).filter(PredictionModel.timestamp >= window_start).scalar() or 0
+        flows_per_minute = round(window_flows / max(1, window_minutes), 1)
+
+        # Flows in previous window for trend calculation
+        prev_window_flows = session.query(func.count(PredictionModel.id)).filter(
+            PredictionModel.timestamp >= prev_window_start,
+            PredictionModel.timestamp < window_start
+        ).scalar() or 0
+
+        trend_pct = round(((window_flows - prev_window_flows) / prev_window_flows) * 100.0, 1) if prev_window_flows > 0 else 0.0
+
+        # Class breakdown for last 5 minutes
+        cat_counts = session.query(
+            PredictionModel.predicted_category, func.count(PredictionModel.id)
+        ).filter(
+            PredictionModel.timestamp >= window_start,
+            PredictionModel.security_status == "ATTACK"
+        ).group_by(PredictionModel.predicted_category).all()
+        attack_classes_5m = {r[0]: r[1] for r in cat_counts}
+
+        # Overall attack distribution
+        all_attacks = session.query(
+            PredictionModel.predicted_category, func.count(PredictionModel.id)
+        ).group_by(PredictionModel.predicted_category).all()
+        distribution = {r[0]: r[1] for r in all_attacks}
+
+        sim_on = os.getenv("SIMULATOR_ENABLED", "true").lower() in ["true", "1", "yes"]
+
+        return {
+            "total_flows": total_flows,
+            "benign_count": benign_cnt,
+            "attack_count": attack_cnt,
+            "detection_percentage": det_pct,
+            "flows_per_minute": flows_per_minute,
+            "window_flows": window_flows,
+            "trend_percentage": trend_pct,
+            "attack_classes_last_5m": attack_classes_5m,
+            "attack_distribution": distribution,
+            "simulator_enabled": sim_on
+        }
+    finally:
+        session.close()
+
+
+def get_timeseries_stats(window_minutes: int = 30) -> List[Dict[str, Any]]:
+    """Returns minute-by-minute breakdown for the last 30 minutes."""
+    session = SessionLocal()
+    try:
+        now = utc_now()
+        timeline = []
+        for i in range(window_minutes - 1, -1, -1):
+            m_start = now - timedelta(minutes=i + 1)
+            m_end = now - timedelta(minutes=i)
+
+            total_m = session.query(func.count(PredictionModel.id)).filter(
+                PredictionModel.timestamp >= m_start,
+                PredictionModel.timestamp < m_end
+            ).scalar() or 0
+
+            attack_m = session.query(func.count(PredictionModel.id)).filter(
+                PredictionModel.timestamp >= m_start,
+                PredictionModel.timestamp < m_end,
+                PredictionModel.security_status == "ATTACK"
+            ).scalar() or 0
+
+            benign_m = max(0, total_m - attack_m)
+
+            timeline.append({
+                "minute": m_end.strftime("%H:%M"),
+                "total": total_m,
+                "benign": benign_m,
+                "attack": attack_m
+            })
+        return timeline
     finally:
         session.close()
 

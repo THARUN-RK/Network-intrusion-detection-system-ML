@@ -7,7 +7,7 @@
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-green.svg)](https://fastapi.tiangolo.com/)
 [![Web Console](https://img.shields.io/badge/SOC%20Console-Web%20Dashboard-blue.svg)](/)
 [![Docker](https://img.shields.io/badge/Container-Docker%20Compose-2496ED.svg)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-23%20Passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-32%20Passed-brightgreen.svg)](tests/)
 
 An enterprise-grade, full-stack **Network Intrusion Detection System (NIDS)** and interactive **Security Operations Center (SOC)**. Built with **Multiclass Support Vector Machine (RBF Kernel)**, **FastAPI REST API**, **WebSockets**, **SQLAlchemy (SQLite + PostgreSQL)**, **Scapy Live Packet Capture**, **ReportLab Executive PDF Generator**, and an ultra-fast **Web SOC Dashboard**. 
 
@@ -202,7 +202,29 @@ When partitioned into simulated Monday–Friday attack schedules strictly over t
 | `PATCH`| `/soc/alerts/{id}/status`| Update alert triage status | Public |
 | `GET` | `/soc/day-wise-evaluation`| Retrieve temporal generalization benchmark data | Public |
 | `GET` | `/soc/reports/pdf` | Download ReportLab executive security PDF report | Public |
+| `GET` | `/api/stats` | Real-time aggregate statistics, velocity, and 5-min class breakdown | Public |
+| `GET` | `/api/timeseries` | Minute-by-minute total, benign, and attack flows (last 30 min) | Public |
+| `GET` | `/api/stream` | Server-Sent Events (SSE) stream pushing live predictions & alerts | Public |
+| `POST` | `/api/simulator/toggle` | Dynamically enable or disable the background traffic simulator | Public |
 | `WS` | `/ws/alerts` | Real-time WebSocket connection broadcasting threat alerts | Public |
+
+### ⚡ Real-Time Traffic Simulation Mode
+
+The system includes an integrated background traffic simulator that drives continuous SOC activity:
+- Samples genuine flows from the held-out `dataset/raw/CICIDS2017_Benchmark_Sample.csv`.
+- Introduces subtle numeric variance (+/- 1-2%) while preserving authentic protocol characteristics.
+- Passes every vector through the identical SVM inference pipeline (`predict_single_flow`).
+- Generates realistic attack bursts (10–25 flows of DDoS or PortScan) alongside high-volume clean traffic.
+- Dynamically recalculates IP reputation scores, auto-blocks high-threat IPs (< 35.0), and enforces table size capping (10,000 max rows).
+
+**Environment Configuration:**
+```bash
+# Enable or disable the simulator (default: true)
+export SIMULATOR_ENABLED=true
+
+# Mean interval between flows in seconds (default: 1.5s, with random 1.0–3.0s jitter)
+export SIMULATOR_RATE=1.5
+```
 
 ---
 

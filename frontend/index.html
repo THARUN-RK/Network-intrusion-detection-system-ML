@@ -6,6 +6,7 @@
     <title>NIDS Security Operations Center (SOC)</title>
     <link rel="icon" href="https://img.icons8.com/fluency/48/shield.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         :root {
             --bg-base: #0b0f19;
@@ -40,22 +41,24 @@
 
         /* Top Navigation Bar */
         header {
-            background: rgba(17, 24, 39, 0.85);
+            background: rgba(17, 24, 39, 0.9);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border-color);
             position: sticky;
             top: 0;
             z-index: 100;
-            padding: 14px 32px;
+            padding: 12px 28px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .brand-container {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
 
         .brand-logo {
@@ -64,7 +67,7 @@
         }
 
         .brand-title {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 800;
             letter-spacing: -0.02em;
             background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
@@ -73,23 +76,80 @@
         }
 
         .brand-subtitle {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: var(--text-secondary);
             font-weight: 500;
         }
 
-        .header-links {
+        .header-controls {
             display: flex;
             align-items: center;
             gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+            animation: pulse 1.8s infinite;
+        }
+
+        .status-dot.paused {
+            background: #f59e0b;
+            box-shadow: 0 0 8px #f59e0b;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        .sim-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: rgba(14, 165, 233, 0.15);
+            color: #38bdf8;
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            text-transform: uppercase;
+        }
+
+        .last-updated {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .btn {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 7px 14px;
-            font-size: 0.85rem;
+            padding: 6px 14px;
+            font-size: 0.8rem;
             font-weight: 600;
             border-radius: 6px;
             text-decoration: none;
@@ -118,61 +178,34 @@
             background: #0369a1;
         }
 
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: rgba(16, 185, 129, 0.15);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #10b981;
-            box-shadow: 0 0 8px #10b981;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.15); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.8; }
-        }
-
         /* Main Container */
         main {
             flex: 1;
-            max-width: 1400px;
+            max-width: 1440px;
             width: 100%;
             margin: 0 auto;
-            padding: 28px 24px;
+            padding: 24px 20px;
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 20px;
         }
 
-        /* Metric Cards Grid */
+        /* Metrics KPI Grid */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 14px;
         }
 
         .metric-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 10px;
-            padding: 20px;
+            padding: 18px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
+            position: relative;
             transition: transform 0.2s ease, border-color 0.2s ease;
         }
 
@@ -182,33 +215,57 @@
         }
 
         .metric-title {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             text-transform: uppercase;
             letter-spacing: 0.06em;
             color: var(--text-muted);
             font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .metric-value {
-            font-size: 1.85rem;
+            font-size: 1.75rem;
             font-weight: 800;
             color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
         }
 
         .metric-sub {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        /* Content Sections */
-        .content-grid {
+        .trend-tag {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .trend-up {
+            color: #f43f5e;
+            background: rgba(244, 63, 94, 0.15);
+        }
+
+        .trend-down {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.15);
+        }
+
+        /* Charts Row */
+        .charts-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
-            gap: 20px;
+            gap: 18px;
         }
 
-        @media (max-width: 1024px) {
-            .content-grid {
+        @media (max-width: 992px) {
+            .charts-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -217,10 +274,10 @@
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
             border-radius: 10px;
-            padding: 22px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
         }
 
         .card-header {
@@ -230,39 +287,62 @@
         }
 
         .card-title {
-            font-size: 1.05rem;
+            font-size: 0.95rem;
             font-weight: 700;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+
+        /* Two Column Content */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1.8fr 1.2fr;
+            gap: 18px;
+        }
+
+        @media (max-width: 1100px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Tables */
         .table-responsive {
             overflow-x: auto;
+            max-height: 480px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             text-align: left;
         }
 
         th {
-            background: rgba(30, 41, 59, 0.6);
+            background: rgba(30, 41, 59, 0.7);
             color: var(--text-secondary);
             font-weight: 600;
-            padding: 10px 14px;
+            padding: 9px 12px;
             border-bottom: 1px solid var(--border-color);
             text-transform: uppercase;
-            font-size: 0.7rem;
-            letter-spacing: 0.04em;
+            font-size: 0.68rem;
+            letter-spacing: 0.05em;
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
 
         td {
-            padding: 12px 14px;
-            border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.3);
             color: var(--text-primary);
         }
 
@@ -270,11 +350,20 @@
             background: rgba(30, 41, 59, 0.4);
         }
 
+        @keyframes row-flash {
+            0% { background: rgba(244, 63, 94, 0.35); }
+            100% { background: transparent; }
+        }
+
+        .flash-new {
+            animation: row-flash 2.5s ease-out;
+        }
+
         .badge {
             display: inline-block;
             padding: 3px 8px;
             border-radius: 4px;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
         }
@@ -291,7 +380,13 @@
             border: 1px solid rgba(245, 158, 11, 0.4);
         }
 
-        .badge-INFO, .badge-SAFE {
+        .badge-MEDIUM {
+            background: rgba(14, 165, 233, 0.2);
+            color: #38bdf8;
+            border: 1px solid rgba(14, 165, 233, 0.4);
+        }
+
+        .badge-LOW, .badge-INFO, .badge-SAFE {
             background: rgba(16, 185, 129, 0.2);
             color: #6ee7b7;
             border: 1px solid rgba(16, 185, 129, 0.4);
@@ -299,7 +394,28 @@
 
         .mono {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
+        }
+
+        /* Reputation Score Bar */
+        .rep-bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rep-bar {
+            width: 70px;
+            height: 6px;
+            background: #1e293b;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .rep-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
         }
 
         /* Interactive Prediction Sandbox */
@@ -307,7 +423,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
         .btn-preset {
@@ -316,7 +432,7 @@
             color: var(--text-secondary);
             padding: 6px 12px;
             border-radius: 6px;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
@@ -332,28 +448,52 @@
             background: var(--bg-base);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 16px;
-            margin-top: 12px;
+            padding: 14px;
+            margin-top: 10px;
             display: none;
         }
 
-        .result-header {
+        .prob-bar-container {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .prob-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 8px;
+            font-size: 0.72rem;
+        }
+
+        .prob-meter {
+            flex: 1;
+            margin: 0 10px;
+            height: 6px;
+            background: #1e293b;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .prob-meter-fill {
+            height: 100%;
+            background: var(--accent-blue);
+            border-radius: 3px;
         }
 
         /* Footer */
         footer {
             border-top: 1px solid var(--border-color);
-            padding: 18px 32px;
+            padding: 16px 28px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
             margin-top: auto;
+            flex-wrap: wrap;
+            gap: 8px;
         }
     </style>
 </head>
@@ -365,16 +505,27 @@
             <img src="https://img.icons8.com/fluency/96/shield.png" alt="Shield" class="brand-logo">
             <div>
                 <div class="brand-title">NIDS Security Operations Center</div>
-                <div class="brand-subtitle">Multiclass RBF Support Vector Machine • CIC-IDS2017</div>
+                <div class="brand-subtitle">Multiclass RBF Support Vector Machine • Live Stream Engine</div>
             </div>
         </div>
-        <div class="header-links">
-            <span class="status-badge">
-                <span class="status-dot"></span>
-                FastAPI Service Healthy
+
+        <div class="header-controls">
+            <span id="stream-status" class="status-badge">
+                <span class="status-dot" id="status-dot"></span>
+                <span id="status-text">LIVE</span>
             </span>
-            <a href="/docs" class="btn btn-outline" target="_blank">Interactive Swagger Docs</a>
-            <a href="/redoc" class="btn btn-outline" target="_blank">ReDoc</a>
+
+            <span id="sim-badge" class="sim-badge">
+                ⚡ SIMULATION ACTIVE
+            </span>
+
+            <span class="last-updated" id="last-updated">Updating...</span>
+
+            <button class="btn btn-outline" id="pause-btn" onclick="togglePause()">
+                ⏸ Pause
+            </button>
+
+            <a href="/docs" class="btn btn-outline" target="_blank">Swagger Docs</a>
             <a href="/health" class="btn btn-outline" target="_blank">Health</a>
         </div>
     </header>
@@ -384,44 +535,83 @@
         <!-- KPI Metrics Grid -->
         <div class="metrics-grid">
             <div class="metric-card">
-                <div class="metric-title">Total Records Analyzed</div>
-                <div class="metric-value" id="val-total">Loading...</div>
+                <div class="metric-title">
+                    <span>Total Records Analyzed</span>
+                    <span id="trend-icon-total">●</span>
+                </div>
+                <div class="metric-value" id="val-total">0</div>
                 <div class="metric-sub">Monitored TCP/UDP streams</div>
             </div>
+
             <div class="metric-card">
                 <div class="metric-title">Normal Connections</div>
-                <div class="metric-value" id="val-benign" style="color: #34d399;">--</div>
-                <div class="metric-sub">Verified benign flows</div>
+                <div class="metric-value" id="val-benign" style="color: #34d399;">0</div>
+                <div class="metric-sub">Verified clean network traffic</div>
             </div>
+
             <div class="metric-card">
                 <div class="metric-title">Detected Attacks</div>
-                <div class="metric-value" id="val-attacks" style="color: #f87171;">--</div>
+                <div class="metric-value" id="val-attacks" style="color: #f87171;">0</div>
                 <div class="metric-sub">Multiclass threats blocked</div>
             </div>
+
             <div class="metric-card">
                 <div class="metric-title">Detection Percentage</div>
-                <div class="metric-value" id="val-ratio" style="color: #38bdf8;">--</div>
-                <div class="metric-sub">Threat capture efficiency</div>
+                <div class="metric-value" id="val-ratio" style="color: #38bdf8;">0.0%</div>
+                <div class="metric-sub">Attack capture ratio</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-title">Flow Velocity</div>
+                <div class="metric-value" id="val-velocity">0.0</div>
+                <div class="metric-sub">
+                    <span id="velocity-trend" class="trend-tag trend-down">0.0%</span>
+                    <span>flows / minute</span>
+                </div>
             </div>
         </div>
 
-        <!-- Content Split: Alerts & Live Interactive Classifier -->
+        <!-- Live Visual Charts -->
+        <div class="charts-grid">
+            <!-- Time Series Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📈 Real-Time Traffic Velocity (Last 30 Minutes)</div>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Flows per minute</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Attack Distribution Doughnut -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🎯 Threat Taxonomy Breakdown</div>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Class Proportions</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="doughnutChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Grid: Alerts Feed & Interactive Classifier -->
         <div class="content-grid">
             <!-- Left Panel: Live Critical Security Alerts -->
             <div class="card">
                 <div class="card-header">
-                    <div class="card-title">🚨 Live Critical Security Alerts</div>
-                    <button class="btn btn-outline" onclick="loadAlerts()">↻ Refresh Feed</button>
+                    <div class="card-title">🚨 Live Critical Security Alerts Feed</div>
+                    <span style="font-size:0.75rem; color:var(--text-muted);" id="alert-counter">Showing latest 20</span>
                 </div>
                 <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Timestamp</th>
+                                <th>Time</th>
                                 <th>Source IP</th>
-                                <th>Target IP</th>
-                                <th>Threat Category</th>
+                                <th>Target</th>
+                                <th>Attack Type</th>
                                 <th>Severity</th>
                                 <th>Confidence</th>
                                 <th>Status</th>
@@ -429,48 +619,52 @@
                         </thead>
                         <tbody id="alerts-tbody">
                             <tr>
-                                <td colspan="8" style="text-align:center; color: var(--text-muted); padding: 24px;">Loading active alerts...</td>
+                                <td colspan="7" style="text-align:center; color: var(--text-muted); padding: 24px;">Listening for live network threats...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Right Panel: Interactive Flow Classifier Sandbox -->
+            <!-- Right Panel: Interactive Flow Classifier -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">⚡ Interactive Flow Classifier</div>
                 </div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary);">
-                    Test the RBF Support Vector Machine by dispatching synthetic 5-tuple flow vectors to the prediction engine.
+                <p style="font-size: 0.8rem; color: var(--text-secondary);">
+                    Send synthetic 5-tuple vectors directly through the RBF SVM inference path.
                 </p>
 
                 <div class="preset-buttons">
-                    <button class="btn-preset" onclick="fillFlowPreset('ddos')">Simulate DDoS Flow</button>
-                    <button class="btn-preset" onclick="fillFlowPreset('portscan')">Simulate PortScan</button>
-                    <button class="btn-preset" onclick="fillFlowPreset('benign')">Simulate Benign Web</button>
+                    <button class="btn-preset" onclick="fillFlowPreset('ddos')">DDoS Burst</button>
+                    <button class="btn-preset" onclick="fillFlowPreset('portscan')">PortScan</button>
+                    <button class="btn-preset" onclick="fillFlowPreset('benign')">Benign Web</button>
                 </div>
 
-                <div style="display:flex; flex-direction:column; gap:8px;">
-                    <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">SOURCE IP</label>
-                    <input type="text" id="flow-src-ip" value="192.168.1.105" class="mono" style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:8px 12px; border-radius:6px;">
-                    
-                    <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">DESTINATION PORT</label>
-                    <input type="number" id="flow-dst-port" value="80" class="mono" style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:8px 12px; border-radius:6px;">
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    <label style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">SOURCE IP</label>
+                    <input type="text" id="flow-src-ip" value="192.168.1.105" class="mono" style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:7px 10px; border-radius:6px; font-size:0.8rem;">
+
+                    <label style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">DESTINATION PORT</label>
+                    <input type="number" id="flow-dst-port" value="80" class="mono" style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:7px 10px; border-radius:6px; font-size:0.8rem;">
                 </div>
 
-                <button class="btn btn-primary" style="margin-top: 10px; width: 100%; justify-content: center;" onclick="classifyFlow()">
+                <button class="btn btn-primary" style="margin-top: 8px; width: 100%; justify-content: center;" onclick="classifyFlow()">
                     🚀 Run SVM Inference
                 </button>
 
                 <div class="result-box" id="result-box">
-                    <div class="result-header">
-                        <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">CLASSIFICATION OUTCOME</span>
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+                        <span style="font-size:0.72rem; font-weight:700; color:var(--text-muted);">PREDICTION RESULT</span>
                         <span id="res-badge" class="badge">--</span>
                     </div>
-                    <div style="font-size: 1.15rem; font-weight: 800;" id="res-category">--</div>
-                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;" id="res-confidence">--</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;" id="res-latency">--</div>
+                    <div style="font-size: 1.1rem; font-weight: 800;" id="res-category">--</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;" id="res-confidence">--</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;" id="res-latency">--</div>
+
+                    <!-- Full Probability Breakdown -->
+                    <div style="margin-top:10px; font-size:0.72rem; font-weight:700; color:var(--text-muted);">CLASS PROBABILITIES</div>
+                    <div class="prob-bar-container" id="prob-container"></div>
                 </div>
             </div>
         </div>
@@ -479,23 +673,23 @@
         <div class="card">
             <div class="card-header">
                 <div class="card-title">🌐 Edge IP Threat Reputation & Defense Profiler</div>
-                <button class="btn btn-outline" onclick="loadIPs()">↻ Refresh IP Table</button>
+                <button class="btn btn-outline" onclick="loadIPs()">↻ Refresh</button>
             </div>
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
                             <th>IP Address</th>
-                            <th>Total Observed Flows</th>
-                            <th>Malicious Incidents</th>
+                            <th>Flows</th>
+                            <th>Attacks</th>
                             <th>Reputation Score</th>
-                            <th>Threat Assessment</th>
-                            <th>Firewall State</th>
+                            <th>Assessment</th>
+                            <th>Firewall Action</th>
                         </tr>
                     </thead>
                     <tbody id="ips-tbody">
                         <tr>
-                            <td colspan="6" style="text-align:center; color: var(--text-muted); padding: 24px;">Loading tracked IPs...</td>
+                            <td colspan="6" style="text-align:center; color: var(--text-muted); padding: 20px;">Loading tracked IPs...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -505,12 +699,19 @@
 
     <!-- Footer -->
     <footer>
-        <div>NIDS Security Operations Center • FastAPI Production Architecture (Streamlit-Free)</div>
-        <div>Trained on CIC-IDS2017 Dataset • 71 Engineered Flow Metrics</div>
+        <div>NIDS Security Operations Center • FastAPI Real-Time Production Architecture</div>
+        <div>Trained on CIC-IDS2017 Dataset • 71 Features • RBF Kernel SVM</div>
     </footer>
 
     <script>
-        // Preset simulation payloads
+        // Global State
+        let isPaused = false;
+        let eventSource = null;
+        let latestAlertId = 0;
+        let timelineChart = null;
+        let doughnutChart = null;
+
+        // Simulator Flow Presets
         const presets = {
             ddos: {
                 destination_port: 80,
@@ -521,7 +722,7 @@
                 bwd_packets_length_total: 600,
                 flow_iat_mean: 120.5,
                 bwd_packet_length_mean: 50.0,
-                src: "172.16.0.5"
+                src: "185.220.101.5"
             },
             portscan: {
                 destination_port: 445,
@@ -532,7 +733,7 @@
                 bwd_packets_length_total: 40,
                 flow_iat_mean: 50.0,
                 bwd_packet_length_mean: 40.0,
-                src: "192.168.10.45"
+                src: "45.33.32.156"
             },
             benign: {
                 destination_port: 443,
@@ -543,7 +744,7 @@
                 bwd_packets_length_total: 18000,
                 flow_iat_mean: 45000.0,
                 bwd_packet_length_mean: 560.0,
-                src: "192.168.1.100"
+                src: "192.168.1.105"
             }
         };
 
@@ -555,126 +756,459 @@
             document.getElementById('flow-dst-port').value = currentPayload.destination_port;
         }
 
-        async function loadStats() {
-            try {
-                const res = await fetch('/soc/stats');
-                if (res.ok) {
-                    const data = await res.json();
-                    document.getElementById('val-total').innerText = Number(data.total_flows_analyzed || 0).toLocaleString();
-                    document.getElementById('val-benign').innerText = Number(data.benign_flows || 0).toLocaleString();
-                    document.getElementById('val-attacks').innerText = Number(data.attack_flows || 0).toLocaleString();
-                    document.getElementById('val-ratio').innerText = (data.attack_detection_percentage || 0).toFixed(1) + '%';
-                }
-            } catch (err) {
-                console.error("Failed to load stats:", err);
+        // Toggle Pause / Resume
+        function togglePause() {
+            isPaused = !isPaused;
+            const btn = document.getElementById('pause-btn');
+            const dot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+
+            if (isPaused) {
+                btn.innerText = "▶ Resume";
+                btn.className = "btn btn-primary";
+                dot.className = "status-dot paused";
+                statusText.innerText = "PAUSED";
+            } else {
+                btn.innerText = "⏸ Pause";
+                btn.className = "btn btn-outline";
+                dot.className = "status-dot";
+                statusText.innerText = "LIVE";
+                loadStats();
+                loadTimeseries();
+                loadAlerts();
             }
         }
 
-        async function loadAlerts() {
+        // Smooth Counter Animation
+        function animateCount(elemId, target, suffix = "") {
+            const elem = document.getElementById(elemId);
+            if (!elem) return;
+            const start = parseFloat(elem.innerText.replace(/[^0-9.-]/g, "")) || 0;
+            const duration = 600;
+            const startTime = performance.now();
+
+            function update(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                // Ease out cubic
+                const ease = 1 - Math.pow(1 - progress, 3);
+                const current = start + (target - start) * ease;
+                
+                if (suffix === "%") {
+                    elem.innerText = current.toFixed(1) + "%";
+                } else if (Number.isInteger(target)) {
+                    elem.innerText = Math.round(current).toLocaleString();
+                } else {
+                    elem.innerText = current.toFixed(1);
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            requestAnimationFrame(update);
+        }
+
+        // Relative Time Formatter
+        function getRelativeTime(timestampStr) {
+            if (!timestampStr) return "--";
             try {
-                const res = await fetch('/alerts?limit=10');
-                if (res.ok) {
-                    const data = await res.json();
-                    const alerts = data.alerts || [];
-                    const tbody = document.getElementById('alerts-tbody');
-                    if (alerts.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:18px;">No security alerts logged. System status normal.</td></tr>';
-                        return;
+                const parsed = new Date(timestampStr.replace(" ", "T") + (timestampStr.includes("Z") ? "" : "Z"));
+                const diffSec = Math.max(0, Math.floor((new Date() - parsed) / 1000));
+                if (diffSec < 4) return "just now";
+                if (diffSec < 60) return `${diffSec}s ago`;
+                if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+                return `${Math.floor(diffSec / 3600)}h ago`;
+            } catch (e) {
+                return timestampStr;
+            }
+        }
+
+        // Initialize Timeline Chart
+        function initTimelineChart() {
+            const ctx = document.getElementById('timelineChart').getContext('2d');
+            timelineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Normal Traffic',
+                            data: [],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.35,
+                            fill: true,
+                            pointRadius: 2
+                        },
+                        {
+                            label: 'Attacks Blocked',
+                            data: [],
+                            borderColor: '#f43f5e',
+                            backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.35,
+                            fill: true,
+                            pointRadius: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 500 },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+                            ticks: { color: '#94a3b8', font: { size: 10 }, maxTicksLimit: 10 }
+                        },
+                        y: {
+                            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+                            ticks: { color: '#94a3b8', font: { size: 10 }, beginAtZero: true }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#e2e8f0', font: { size: 11 } }
+                        }
                     }
-                    tbody.innerHTML = alerts.map(a => `
-                        <tr>
-                            <td class="mono">#${a.id}</td>
-                            <td class="mono">${a.timestamp ? a.timestamp.substring(11, 19) : '--'}</td>
+                }
+            });
+        }
+
+        // Initialize Doughnut Chart
+        function initDoughnutChart() {
+            const ctx = document.getElementById('doughnutChart').getContext('2d');
+            doughnutChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['BENIGN', 'DDoS', 'DoS', 'PortScan', 'Other'],
+                    datasets: [{
+                        data: [1, 0, 0, 0, 0],
+                        backgroundColor: ['#10b981', '#f43f5e', '#f59e0b', '#38bdf8', '#a855f7'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '68%',
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#e2e8f0', font: { size: 10 }, boxWidth: 10 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load Live Stats from /api/stats
+        async function loadStats() {
+            if (isPaused) return;
+            try {
+                const res = await fetch('/api/stats?window_minutes=5');
+                if (!res.ok) return;
+                const d = await res.json();
+
+                animateCount('val-total', d.total_flows);
+                animateCount('val-benign', d.benign_count);
+                animateCount('val-attacks', d.attack_count);
+                animateCount('val-ratio', d.detection_percentage, "%");
+                animateCount('val-velocity', d.flows_per_minute);
+
+                const trendElem = document.getElementById('velocity-trend');
+                const trendVal = d.trend_percentage || 0;
+                if (trendVal >= 0) {
+                    trendElem.innerText = `▲ +${trendVal}%`;
+                    trendElem.className = "trend-tag trend-up";
+                } else {
+                    trendElem.innerText = `▼ ${trendVal}%`;
+                    trendElem.className = "trend-tag trend-down";
+                }
+
+                document.getElementById('last-updated').innerText = new Date().toLocaleTimeString();
+
+                // Update doughnut chart with real class distribution
+                if (doughnutChart && d.attack_distribution) {
+                    const keys = Object.keys(d.attack_distribution);
+                    const values = Object.values(d.attack_distribution);
+                    doughnutChart.data.labels = keys;
+                    doughnutChart.data.datasets[0].data = values;
+                    doughnutChart.update();
+                }
+            } catch (err) {
+                console.error("Error fetching live stats:", err);
+            }
+        }
+
+        // Load Timeseries from /api/timeseries
+        async function loadTimeseries() {
+            if (isPaused || !timelineChart) return;
+            try {
+                const res = await fetch('/api/timeseries?window_minutes=30');
+                if (!res.ok) return;
+                const data = await res.json();
+
+                timelineChart.data.labels = data.map(d => d.minute);
+                timelineChart.data.datasets[0].data = data.map(d => d.benign);
+                timelineChart.data.datasets[1].data = data.map(d => d.attack);
+                timelineChart.update();
+            } catch (err) {
+                console.error("Error fetching timeseries:", err);
+            }
+        }
+
+        // Load Alerts
+        async function loadAlerts() {
+            if (isPaused) return;
+            try {
+                const res = await fetch('/alerts?limit=20');
+                if (!res.ok) return;
+                const data = await res.json();
+                const alerts = data.alerts || [];
+                const tbody = document.getElementById('alerts-tbody');
+
+                if (alerts.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:18px;">No alerts logged yet. System status normal.</td></tr>';
+                    return;
+                }
+
+                if (alerts.length > 0 && alerts[0].id > latestAlertId) {
+                    latestAlertId = alerts[0].id;
+                }
+
+                tbody.innerHTML = alerts.map(a => {
+                    // Safe single percentage format
+                    const confNum = Number(a.confidence) || 0.0;
+                    const confDisplay = confNum.toFixed(1) + '%';
+                    const relTime = getRelativeTime(a.timestamp);
+
+                    return `
+                        <tr data-id="${a.id}">
+                            <td class="mono" style="color:var(--text-muted);">${relTime}</td>
                             <td class="mono">${a.source_ip || '--'}</td>
                             <td class="mono">${a.destination_ip || '--'}</td>
                             <td><strong>${a.attack_type || 'Unknown'}</strong></td>
                             <td><span class="badge badge-${a.alert_level || 'INFO'}">${a.alert_level || 'INFO'}</span></td>
-                            <td>${a.confidence ? (a.confidence * 100).toFixed(1) + '%' : '--'}</td>
-                            <td><span class="badge badge-INFO">${a.status || 'ACTIVE'}</span></td>
+                            <td class="mono" style="font-weight:600;">${confDisplay}</td>
+                            <td><span class="badge badge-INFO">${a.status || 'NEW'}</span></td>
                         </tr>
-                    `).join('');
-                }
+                    `;
+                }).join('');
             } catch (err) {
-                console.error("Failed to load alerts:", err);
+                console.error("Error loading alerts:", err);
             }
         }
 
+        // Prepend Single Live Alert
+        function prependLiveAlert(alertData) {
+            if (isPaused) return;
+            const tbody = document.getElementById('alerts-tbody');
+            if (tbody.innerText.includes("Listening for live")) {
+                tbody.innerHTML = '';
+            }
+
+            const tr = document.createElement('tr');
+            tr.className = "flash-new";
+            const confNum = Number(alertData.confidence) || 0.0;
+            const confDisplay = confNum.toFixed(1) + '%';
+
+            tr.innerHTML = `
+                <td class="mono" style="color:var(--text-muted);">just now</td>
+                <td class="mono">${alertData.source_ip || '--'}</td>
+                <td class="mono">${alertData.destination_ip || '--'}</td>
+                <td><strong>${alertData.attack_type || 'Unknown'}</strong></td>
+                <td><span class="badge badge-${alertData.alert_level || 'INFO'}">${alertData.alert_level || 'INFO'}</span></td>
+                <td class="mono" style="font-weight:600;">${confDisplay}</td>
+                <td><span class="badge badge-INFO">${alertData.status || 'NEW'}</span></td>
+            `;
+
+            tbody.insertBefore(tr, tbody.firstChild);
+
+            // Keep max 20 rows
+            while (tbody.children.length > 20) {
+                tbody.removeChild(tbody.lastChild);
+            }
+        }
+
+        // Load Tracked IPs
         async function loadIPs() {
+            if (isPaused) return;
             try {
-                const res = await fetch('/soc/ips?limit=10');
-                if (res.ok) {
-                    const ips = await res.json();
-                    const tbody = document.getElementById('ips-tbody');
-                    if (!ips || ips.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:18px;">No IP addresses profiled yet.</td></tr>';
-                        return;
-                    }
-                    tbody.innerHTML = ips.map(ip => `
+                const res = await fetch('/soc/ips?limit=15');
+                if (!res.ok) return;
+                const ips = await res.json();
+                const tbody = document.getElementById('ips-tbody');
+
+                if (!ips || ips.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:18px;">No IP addresses profiled yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = ips.map(ip => {
+                    const sc = Math.min(100, Math.max(0, Number(ip.reputation_score) || 0));
+                    const fillCol = sc < 40 ? '#f43f5e' : (sc < 75 ? '#f59e0b' : '#10b981');
+                    const isBlk = Boolean(ip.is_blocked);
+
+                    return `
                         <tr>
                             <td class="mono"><strong>${ip.ip_address}</strong></td>
                             <td>${Number(ip.total_flows || 0).toLocaleString()}</td>
                             <td style="color:${ip.attack_count > 0 ? '#f87171' : 'inherit'}; font-weight:700;">${ip.attack_count || 0}</td>
-                            <td>${(ip.reputation_score || 0).toFixed(1)} / 100</td>
+                            <td>
+                                <div class="rep-bar-wrap">
+                                    <div class="rep-bar">
+                                        <div class="rep-fill" style="width:${sc}%; background:${fillCol};"></div>
+                                    </div>
+                                    <span class="mono">${sc.toFixed(1)}</span>
+                                </div>
+                            </td>
                             <td><span class="badge badge-${ip.threat_level || 'SAFE'}">${ip.threat_level || 'SAFE'}</span></td>
-                            <td>${ip.is_blocked ? '<span class="badge badge-CRITICAL">BLOCKED</span>' : '<span class="badge badge-INFO">ACTIVE</span>'}</td>
+                            <td>
+                                ${isBlk 
+                                    ? `<button class="btn btn-outline" style="padding:3px 8px; font-size:0.7rem; color:#34d399;" onclick="toggleBlock('${ip.ip_address}', false)">✓ Unblock</button>` 
+                                    : `<button class="btn btn-outline" style="padding:3px 8px; font-size:0.7rem; color:#fb7185;" onclick="toggleBlock('${ip.ip_address}', true)">🚫 Block</button>`
+                                }
+                            </td>
                         </tr>
-                    `).join('');
-                }
+                    `;
+                }).join('');
             } catch (err) {
-                console.error("Failed to load IPs:", err);
+                console.error("Error loading IPs:", err);
             }
         }
 
+        // Toggle IP Block via API
+        async function toggleBlock(ip, block) {
+            try {
+                await fetch('/soc/ips/block', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip_address: ip, block: block })
+                });
+                loadIPs();
+            } catch (err) {
+                console.error("Failed to toggle block:", err);
+            }
+        }
+
+        // Real-Time Server-Sent Events (SSE) Stream
+        function initStream() {
+            try {
+                eventSource = new EventSource('/api/stream');
+
+                eventSource.onopen = function() {
+                    const statusText = document.getElementById('status-text');
+                    if (!isPaused) statusText.innerText = "LIVE";
+                };
+
+                eventSource.addEventListener('prediction', function(e) {
+                    if (isPaused) return;
+                    // Trigger lightweight stats poll on event
+                    loadStats();
+                });
+
+                eventSource.addEventListener('alert', function(e) {
+                    if (isPaused) return;
+                    try {
+                        const alertData = JSON.parse(e.data);
+                        prependLiveAlert(alertData);
+                        loadStats();
+                        loadIPs();
+                    } catch (err) {
+                        console.error("Error handling live alert:", err);
+                    }
+                });
+
+                eventSource.onerror = function() {
+                    // Fall back gracefully to polling if SSE drops
+                    eventSource.close();
+                    setTimeout(initStream, 5000);
+                };
+            } catch (e) {
+                console.warn("SSE not supported, running poll fallback:", e);
+            }
+        }
+
+        // Interactive Flow Classifier
         async function classifyFlow() {
             const resultBox = document.getElementById('result-box');
             resultBox.style.display = 'block';
-            document.getElementById('res-category').innerText = "Analyzing flow with RBF SVM...";
-            
+            document.getElementById('res-category').innerText = "Running inference on RBF SVM...";
+            document.getElementById('prob-container').innerHTML = '';
+
             const payload = {
                 ...currentPayload,
                 source_ip: document.getElementById('flow-src-ip').value,
                 destination_port: parseInt(document.getElementById('flow-dst-port').value, 10)
             };
 
-            const startTime = performance.now();
+            const t0 = performance.now();
             try {
                 const res = await fetch('/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                const elapsed = (performance.now() - startTime).toFixed(1);
-                
+                const elapsed = (performance.now() - t0).toFixed(1);
+
                 if (res.ok) {
                     const data = await res.json();
                     document.getElementById('res-category').innerText = data.predicted_category;
-                    document.getElementById('res-confidence').innerText = `Confidence: ${(data.confidence * 100).toFixed(1)}% | Status: ${data.security_status}`;
-                    document.getElementById('res-latency').innerText = `Inference latency: ${elapsed} ms`;
-                    
+                    const confNum = Number(data.confidence) || 0.0;
+                    document.getElementById('res-confidence').innerText = `Confidence: ${confNum.toFixed(1)}% | Status: ${data.security_status}`;
+                    document.getElementById('res-latency').innerText = `Execution latency: ${elapsed} ms`;
+
                     const badge = document.getElementById('res-badge');
                     badge.innerText = data.severity;
                     badge.className = `badge badge-${data.severity}`;
-                    
-                    // Refresh alerts & stats
+
+                    // Render Full Probability Breakdown
+                    const probs = data.probabilities || {};
+                    const probBox = document.getElementById('prob-container');
+                    probBox.innerHTML = Object.entries(probs).map(([cat, val]) => {
+                        const pNum = Number(val) || 0.0;
+                        const fillCol = cat === data.predicted_category ? '#38bdf8' : '#64748b';
+                        return `
+                            <div class="prob-row">
+                                <span style="width:90px; color:${cat === data.predicted_category ? '#f1f5f9' : 'inherit'}; font-weight:${cat === data.predicted_category ? '700' : '400'};">${cat}</span>
+                                <div class="prob-meter">
+                                    <div class="prob-meter-fill" style="width:${Math.min(100, pNum)}%; background:${fillCol};"></div>
+                                </div>
+                                <span class="mono" style="width:45px; text-align:right;">${pNum.toFixed(1)}%</span>
+                            </div>
+                        `;
+                    }).join('');
+
                     loadStats();
                     loadAlerts();
+                    loadIPs();
                 } else {
                     document.getElementById('res-category').innerText = "Inference Failed";
-                    document.getElementById('res-confidence').innerText = "HTTP " + res.status;
                 }
             } catch (err) {
-                document.getElementById('res-category').innerText = "Connection Error";
+                document.getElementById('res-category').innerText = "Error";
                 document.getElementById('res-confidence').innerText = err.message;
             }
         }
 
-        // Initialize dashboard
-        loadStats();
-        loadAlerts();
-        loadIPs();
-        // Auto-refresh stats every 15 seconds
-        setInterval(loadStats, 15000);
-        setInterval(loadAlerts, 15000);
+        // Initialize Everything on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            initTimelineChart();
+            initDoughnutChart();
+            loadStats();
+            loadTimeseries();
+            loadAlerts();
+            loadIPs();
+            initStream();
+
+            // Periodic polling fallback & timer updates
+            setInterval(loadStats, 3000);
+            setInterval(loadTimeseries, 15000);
+            setInterval(loadIPs, 10000);
+        });
     </script>
 </body>
 </html>
