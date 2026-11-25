@@ -224,6 +224,74 @@ def init_db(db_path: Optional[Path] = None) -> None:
             session.add_all([admin_user, analyst_user])
             session.commit()
             logger.info("Seeded default SOC users: 'admin' and 'analyst'")
+
+        # Seed baseline network traffic flows if empty
+        pred_count = session.query(PredictionModel).count()
+        if pred_count == 0:
+            seed_flows = [
+                ("BENIGN", 99.4, "BENIGN", "LOW", False, "192.168.1.105", "142.250.190.46", 49152, 443, "TCP", 1240.0),
+                ("BENIGN", 98.2, "BENIGN", "LOW", False, "192.168.1.102", "192.168.1.1", 51220, 80, "TCP", 850.0),
+                ("BENIGN", 97.8, "BENIGN", "LOW", False, "192.168.1.110", "172.217.16.206", 53100, 443, "TCP", 2100.0),
+                ("BENIGN", 99.1, "BENIGN", "LOW", False, "192.168.1.108", "8.8.8.8", 61002, 53, "UDP", 45.0),
+                ("DDoS", 100.0, "ATTACK", "CRITICAL", False, "185.220.101.5", "10.0.0.1", 44102, 80, "TCP", 15200.0),
+                ("DoS", 99.8, "ATTACK", "HIGH", False, "194.26.29.112", "10.0.0.1", 38910, 80, "TCP", 9800.0),
+                ("PortScan", 100.0, "ATTACK", "MEDIUM", False, "45.33.32.156", "10.0.0.1", 55210, 22, "TCP", 120.0),
+                ("Bot", 92.5, "ATTACK", "HIGH", False, "103.251.167.20", "10.0.0.5", 58120, 8080, "TCP", 4500.0),
+                ("Web Attack", 90.3, "ATTACK", "HIGH", False, "198.51.100.42", "10.0.0.1", 41200, 80, "TCP", 3100.0),
+                ("FTP-Patator", 96.0, "ATTACK", "MEDIUM", False, "203.0.113.88", "10.0.0.2", 34510, 21, "TCP", 890.0),
+                ("SSH-Patator", 98.2, "ATTACK", "HIGH", False, "198.51.100.15", "10.0.0.2", 52190, 22, "TCP", 1200.0),
+                ("Infiltration", 99.1, "ATTACK", "CRITICAL", False, "172.16.0.4", "10.0.0.10", 49800, 445, "TCP", 7600.0),
+            ]
+            for cat, conf, sec_st, sev, is_ano, src_ip, dst_ip, s_port, d_port, proto, dur in seed_flows:
+                rec_id = f"flow-{src_ip}-{dst_ip}-{s_port}-{d_port}"
+                pred_obj = PredictionModel(
+                    record_identifier=rec_id,
+                    predicted_category=cat,
+                    confidence=conf,
+                    security_status=sec_st,
+                    severity=sev,
+                    is_anomaly=is_ano,
+                    source_ip=src_ip,
+                    destination_ip=dst_ip,
+                    source_port=s_port,
+                    destination_port=d_port,
+                    protocol=proto,
+                    flow_duration=dur
+                )
+                session.add(pred_obj)
+                session.flush()
+
+                # Generate alert for attack or anomaly
+                if sec_st in ["ATTACK", "ANOMALY"]:
+                    alert_obj = SecurityAlertModel(
+                        prediction_id=pred_obj.id,
+                        alert_level=sev,
+                        attack_type=cat,
+                        confidence=conf,
+                        status="NEW",
+                        source_ip=src_ip,
+                        destination_ip=dst_ip,
+                        description=f"Automated threat triage: {cat} detected with {conf:.1f}% confidence."
+                    )
+                    session.add(alert_obj)
+
+                # Track IP reputation
+                ip_entry = session.query(IPReputationModel).filter_by(ip_address=src_ip).first()
+                if not ip_entry:
+                    th_level = "MALICIOUS" if sec_st == "ATTACK" else "SAFE"
+                    rep_sc = 15.0 if sec_st == "ATTACK" else 95.0
+                    ip_entry = IPReputationModel(
+                        ip_address=src_ip,
+                        total_flows=1,
+                        attack_count=1 if sec_st == "ATTACK" else 0,
+                        reputation_score=rep_sc,
+                        threat_level=th_level,
+                        is_blocked=(sev == "CRITICAL")
+                    )
+                    session.add(ip_entry)
+
+            session.commit()
+            logger.info("Seeded initial baseline network flows and security alerts.")
     except Exception as e:
         session.rollback()
         logger.error(f"Error seeding default users: {e}")
