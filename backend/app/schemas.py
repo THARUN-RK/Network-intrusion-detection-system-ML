@@ -133,3 +133,69 @@ class IPReputationResponse(BaseModel):
 class IPBlockRequest(BaseModel):
     ip_address: str
     block: bool
+
+
+# ==============================================================================
+# IP THREAT INTELLIGENCE SCHEMAS
+# ==============================================================================
+
+class IPThreatLookupRequest(BaseModel):
+    ip_address: str = Field(..., description="Valid public or internal IPv4/IPv6 address")
+    force_refresh: bool = Field(default=False, description="Bypass cache and force fresh API query")
+
+
+class IPThreatLookupResponse(BaseModel):
+    ip_address: str
+    validation: Dict[str, Any]
+    virustotal: Dict[str, Any]
+    abuseipdb: Dict[str, Any]
+    hybrid_assessment: Dict[str, Any]
+    threat_status: str
+    risk_score: float
+    cached: bool
+    checked_at: str
+
+
+class IPThreatHistoryItem(BaseModel):
+    id: int
+    ip_address: str
+    ip_version: int
+    is_public: bool
+    threat_status: str
+    risk_score: float
+    abuse_confidence: float
+    vt_detection_ratio: str
+    total_reports: int
+    country: str
+    isp: str
+    asn: str
+    threat_reasons: List[str] = Field(default_factory=list)
+    raw_intel: Dict[str, Any] = Field(default_factory=dict)
+    timestamp: str
+
+
+class IPThreatHistoryResponse(BaseModel):
+    total: int
+    items: List[IPThreatHistoryItem]
+
+
+class IPThreatKpiResponse(BaseModel):
+    total_lookups: int
+    malicious_count: int
+    suspicious_count: int
+    clean_count: int
+    unknown_count: int
+    top_countries: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+class UnifiedDashboardStatsResponse(BaseModel):
+    total_records_analysed: int
+    total_normal_connections: int
+    total_detected_attacks: int
+    attack_detection_percentage: float
+    total_ips_checked: int
+    malicious_ips: int
+    suspicious_ips: int
+    clean_ips: int
+    category_distribution: Dict[str, int]
+    threat_status_distribution: Dict[str, int]

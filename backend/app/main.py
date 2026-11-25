@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import database
 import predict
 from backend.app.schemas import HealthResponse, ModelInfoResponse
-from backend.app.routes import prediction, analytics, history, auth_routes, soc_routes, api_live
+from backend.app.routes import prediction, analytics, history, auth_routes, soc_routes, api_live, threat_intel_routes
 from backend.app.websocket_manager import ws_manager
 from backend.app.simulator import traffic_simulator
 
@@ -53,6 +53,7 @@ app.include_router(prediction.router)
 app.include_router(analytics.router)
 app.include_router(history.router)
 app.include_router(api_live.router)
+app.include_router(threat_intel_routes.router)
 
 INDEX_HTML_PATH = Path(__file__).resolve().parent.parent.parent / "frontend" / "index.html"
 

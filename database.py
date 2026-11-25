@@ -10,6 +10,8 @@ Maintains models for:
 """
 
 import os
+import io
+import csv
 import json
 import logging
 from datetime import datetime, timezone, timedelta
@@ -21,7 +23,7 @@ def utc_now():
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 from sqlalchemy import (
-    create_engine, Column, Integer, String, Float, DateTime, Text, Boolean, ForeignKey, Index, desc, func
+    create_engine, Column, Integer, String, Float, DateTime, Text, Boolean, ForeignKey, Index, desc, func, or_
 )
 from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session, relationship
 
@@ -153,6 +155,26 @@ class IPReputationModel(Base):
     is_blocked = Column(Boolean, default=False, index=True)
     country = Column(String(50), default="Unknown")
     last_seen = Column(DateTime, default=utc_now)
+
+
+class IPThreatLookupModel(Base):
+    __tablename__ = "ip_threat_lookups"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    ip_address = Column(String(45), nullable=False, index=True)
+    ip_version = Column(Integer, default=4)
+    is_public = Column(Boolean, default=True)
+    threat_status = Column(String(30), nullable=False, index=True)  # NO KNOWN THREATS, SUSPICIOUS, MALICIOUS, UNKNOWN
+    risk_score = Column(Float, default=0.0)                         # 0.0 - 100.0
+    abuse_confidence = Column(Float, default=0.0)                   # 0.0 - 100.0
+    vt_detection_ratio = Column(String(30), default="0/0")          # e.g. "5/88"
+    total_reports = Column(Integer, default=0)
+    country = Column(String(100), default="Unknown")
+    isp = Column(String(150), default="Unknown")
+    asn = Column(String(100), default="Unknown")
+    threat_reasons_json = Column(Text, default="[]")
+    raw_intel_json = Column(Text, default="{}")
+    timestamp = Column(DateTime, default=utc_now, index=True)
 
 
 # ==============================================================================
@@ -917,6 +939,207 @@ def update_incident_status(incident_code: str, new_status: str, notes: Optional[
             session.commit()
             return True
         return False
+    finally:
+        session.close()
+
+
+# ==============================================================================
+# IP THREAT INTELLIGENCE & AUDIT HISTORY
+# ==============================================================================
+
+def save_ip_threat_lookup(
+    ip_address: str,
+    ip_version: int = 4,
+    is_public: bool = True,
+    threat_status: str = "UNKNOWN",
+    risk_score: float = 0.0,
+    abuse_confidence: float = 0.0,
+    vt_detection_ratio: str = "0/0",
+    total_reports: int = 0,
+    country: str = "Unknown",
+    isp: str = "Unknown",
+    asn: str = "Unknown",
+    threat_reasons: Optional[List[str]] = None,
+    raw_intel: Optional[Dict[str, Any]] = None
+) -> int:
+    """Saves an IP threat intelligence lookup record to the database."""
+    session = SessionLocal()
+    try:
+        record = IPThreatLookupModel(
+            ip_address=ip_address,
+            ip_version=ip_version,
+            is_public=is_public,
+            threat_status=threat_status,
+            risk_score=float(risk_score),
+            abuse_confidence=float(abuse_confidence),
+            vt_detection_ratio=str(vt_detection_ratio),
+            total_reports=int(total_reports),
+            country=country or "Unknown",
+            isp=isp or "Unknown",
+            asn=asn or "Unknown",
+            threat_reasons_json=json.dumps(threat_reasons or []),
+            raw_intel_json=json.dumps(raw_intel or {}),
+            timestamp=utc_now()
+        )
+        session.add(record)
+        session.commit()
+        return record.id
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to save IP threat lookup for {ip_address}: {e}")
+        return -1
+    finally:
+        session.close()
+
+
+def get_ip_threat_history(
+    limit: int = 50,
+    offset: int = 0,
+    search: Optional[str] = None,
+    threat_status: Optional[str] = None
+) -> Dict[str, Any]:
+    """Retrieves paginated, filterable IP threat intelligence lookup history."""
+    session = SessionLocal()
+    try:
+        query = session.query(IPThreatLookupModel)
+        if threat_status and isinstance(threat_status, str) and threat_status.upper() != "ALL":
+            query = query.filter(IPThreatLookupModel.threat_status == threat_status.upper())
+        if search and isinstance(search, str):
+            term = f"%{search.strip()}%"
+            query = query.filter(
+                or_(
+                    IPThreatLookupModel.ip_address.like(term),
+                    IPThreatLookupModel.country.like(term),
+                    IPThreatLookupModel.isp.like(term),
+                    IPThreatLookupModel.asn.like(term)
+                )
+            )
+        limit_val = limit if isinstance(limit, int) else 50
+        offset_val = offset if isinstance(offset, int) else 0
+        total = query.count()
+        rows = query.order_by(desc(IPThreatLookupModel.id)).offset(offset_val).limit(limit_val).all()
+        items = []
+        for r in rows:
+            try:
+                reasons = json.loads(r.threat_reasons_json) if r.threat_reasons_json else []
+            except Exception:
+                reasons = []
+            try:
+                raw_intel = json.loads(r.raw_intel_json) if r.raw_intel_json else {}
+            except Exception:
+                raw_intel = {}
+            items.append({
+                "id": r.id,
+                "ip_address": r.ip_address,
+                "ip_version": r.ip_version,
+                "is_public": r.is_public,
+                "threat_status": r.threat_status,
+                "risk_score": r.risk_score,
+                "abuse_confidence": r.abuse_confidence,
+                "vt_detection_ratio": r.vt_detection_ratio,
+                "total_reports": r.total_reports,
+                "country": r.country,
+                "isp": r.isp,
+                "asn": r.asn,
+                "threat_reasons": reasons,
+                "raw_intel": raw_intel,
+                "timestamp": r.timestamp.strftime("%Y-%m-%d %H:%M:%S") if r.timestamp else ""
+            })
+        return {"total": total, "items": items}
+    finally:
+        session.close()
+
+
+def get_ip_threat_kpis() -> Dict[str, Any]:
+    """Retrieves high-level KPI summaries for IP threat intelligence."""
+    session = SessionLocal()
+    try:
+        total = session.query(func.count(IPThreatLookupModel.id)).scalar() or 0
+        malicious = session.query(func.count(IPThreatLookupModel.id)).filter(IPThreatLookupModel.threat_status == "MALICIOUS").scalar() or 0
+        suspicious = session.query(func.count(IPThreatLookupModel.id)).filter(IPThreatLookupModel.threat_status == "SUSPICIOUS").scalar() or 0
+        clean = session.query(func.count(IPThreatLookupModel.id)).filter(IPThreatLookupModel.threat_status == "NO KNOWN THREATS").scalar() or 0
+        unknown = session.query(func.count(IPThreatLookupModel.id)).filter(IPThreatLookupModel.threat_status == "UNKNOWN").scalar() or 0
+        
+        country_rows = session.query(
+            IPThreatLookupModel.country, func.count(IPThreatLookupModel.id)
+        ).group_by(IPThreatLookupModel.country).order_by(desc(func.count(IPThreatLookupModel.id))).limit(5).all()
+        
+        top_countries = [{"country": c or "Unknown", "count": cnt} for c, cnt in country_rows]
+
+        return {
+            "total_lookups": total,
+            "malicious_count": malicious,
+            "suspicious_count": suspicious,
+            "clean_count": clean,
+            "unknown_count": unknown,
+            "top_countries": top_countries
+        }
+    finally:
+        session.close()
+
+
+def export_ip_threat_history_csv() -> str:
+    """Exports up to 1000 latest IP threat lookup records as CSV formatted text."""
+    session = SessionLocal()
+    try:
+        rows = session.query(IPThreatLookupModel).order_by(desc(IPThreatLookupModel.id)).limit(1000).all()
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow([
+            "ID", "IP Address", "IP Version", "Is Public", "Threat Status",
+            "Risk Score", "Abuse Confidence", "VT Detection Ratio", "Total Reports",
+            "Country", "ISP", "ASN", "Timestamp"
+        ])
+        for r in rows:
+            writer.writerow([
+                r.id,
+                r.ip_address,
+                f"IPv{r.ip_version}",
+                "Yes" if r.is_public else "No",
+                r.threat_status,
+                f"{r.risk_score:.1f}",
+                f"{r.abuse_confidence:.1f}",
+                r.vt_detection_ratio,
+                r.total_reports,
+                r.country,
+                r.isp,
+                r.asn,
+                r.timestamp.strftime("%Y-%m-%d %H:%M:%S") if r.timestamp else ""
+            ])
+        return output.getvalue()
+    finally:
+        session.close()
+
+
+def export_flow_history_csv() -> str:
+    """Exports up to 1000 latest network flow classification records as CSV formatted text."""
+    session = SessionLocal()
+    try:
+        rows = session.query(PredictionModel).order_by(desc(PredictionModel.id)).limit(1000).all()
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow([
+            "ID", "Record Identifier", "Predicted Category", "Confidence", "Security Status",
+            "Severity", "Is Anomaly", "Timestamp", "Source IP", "Destination IP",
+            "Destination Port", "Protocol", "Flow Duration"
+        ])
+        for r in rows:
+            writer.writerow([
+                r.id,
+                r.record_identifier,
+                r.predicted_category,
+                f"{r.confidence:.1f}%",
+                r.security_status,
+                r.severity,
+                "Yes" if r.is_anomaly else "No",
+                r.timestamp.strftime("%Y-%m-%d %H:%M:%S") if r.timestamp else "",
+                r.source_ip,
+                r.destination_ip,
+                r.destination_port,
+                r.protocol,
+                r.flow_duration
+            ])
+        return output.getvalue()
     finally:
         session.close()
 
