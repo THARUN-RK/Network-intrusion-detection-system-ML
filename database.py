@@ -165,7 +165,7 @@ class IPThreatLookupModel(Base):
     ip_version = Column(Integer, default=4)
     is_public = Column(Boolean, default=True)
     threat_status = Column(String(30), nullable=False, index=True)  # NO KNOWN THREATS, SUSPICIOUS, MALICIOUS, UNKNOWN
-    risk_score = Column(Float, default=0.0)                         # 0.0 - 100.0
+    risk_score = Column(Float, nullable=True, default=None)         # 0.0 - 100.0 or None when unavailable
     abuse_confidence = Column(Float, default=0.0)                   # 0.0 - 100.0
     vt_detection_ratio = Column(String(30), default="0/0")          # e.g. "5/88"
     total_reports = Column(Integer, default=0)
@@ -952,7 +952,7 @@ def save_ip_threat_lookup(
     ip_version: int = 4,
     is_public: bool = True,
     threat_status: str = "UNKNOWN",
-    risk_score: float = 0.0,
+    risk_score: Optional[float] = None,
     abuse_confidence: float = 0.0,
     vt_detection_ratio: str = "0/0",
     total_reports: int = 0,
@@ -965,15 +965,16 @@ def save_ip_threat_lookup(
     """Saves an IP threat intelligence lookup record to the database."""
     session = SessionLocal()
     try:
+        safe_risk = float(risk_score) if risk_score is not None else None
         record = IPThreatLookupModel(
             ip_address=ip_address,
             ip_version=ip_version,
             is_public=is_public,
             threat_status=threat_status,
-            risk_score=float(risk_score),
-            abuse_confidence=float(abuse_confidence),
-            vt_detection_ratio=str(vt_detection_ratio),
-            total_reports=int(total_reports),
+            risk_score=safe_risk,
+            abuse_confidence=float(abuse_confidence or 0.0),
+            vt_detection_ratio=str(vt_detection_ratio or "N/A"),
+            total_reports=int(total_reports or 0),
             country=country or "Unknown",
             isp=isp or "Unknown",
             asn=asn or "Unknown",
@@ -1094,10 +1095,10 @@ def export_ip_threat_history_csv() -> str:
             writer.writerow([
                 r.id,
                 r.ip_address,
-                f"IPv{r.ip_version}",
+                f"IPv{r.ip_version}" if r.ip_version else "Invalid",
                 "Yes" if r.is_public else "No",
                 r.threat_status,
-                f"{r.risk_score:.1f}",
+                f"{r.risk_score:.1f}" if r.risk_score is not None else "N/A",
                 f"{r.abuse_confidence:.1f}",
                 r.vt_detection_ratio,
                 r.total_reports,

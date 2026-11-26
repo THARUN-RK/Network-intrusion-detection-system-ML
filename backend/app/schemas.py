@@ -151,7 +151,9 @@ class IPThreatLookupResponse(BaseModel):
     abuseipdb: Dict[str, Any]
     hybrid_assessment: Dict[str, Any]
     threat_status: str
-    risk_score: float
+    risk_score: Optional[float] = None
+    risk_score_available: bool = True
+    api_status: Optional[Dict[str, Any]] = None
     cached: bool
     checked_at: str
 
@@ -162,7 +164,7 @@ class IPThreatHistoryItem(BaseModel):
     ip_version: int
     is_public: bool
     threat_status: str
-    risk_score: float
+    risk_score: Optional[float] = None
     abuse_confidence: float
     vt_detection_ratio: str
     total_reports: int

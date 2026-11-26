@@ -806,6 +806,41 @@
             border-color: rgba(16, 185, 129, 0.3);
         }
 
+        .containment-action-box.unknown {
+            background: rgba(148, 163, 184, 0.1);
+            border-color: rgba(148, 163, 184, 0.3);
+        }
+
+        .containment-action-box.suspicious {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .telemetry-error-banner {
+            display: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.76rem;
+            line-height: 1.4;
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            color: #fcd34d;
+        }
+
+        .intel-conn-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 14px;
+            padding: 10px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.78rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
         /* Classifier Inputs */
         .classifier-grid {
             display: grid;
@@ -1263,6 +1298,21 @@
                     <span class="ip-pill" onclick="quickFillIP('2001:4860:4860::8888')">2001:4860:4860::8888 (Google IPv6)</span>
                     <span class="ip-pill" onclick="quickFillIP('::1')">::1 (IPv6 Loopback)</span>
                 </div>
+
+                <!-- Provider Connection Status Bar -->
+                <div class="intel-conn-strip" id="intel-provider-status-bar">
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <span style="color:var(--text-muted); font-weight:700; text-transform:uppercase; font-size:0.72rem;">API Connections:</span>
+                        <span>🛡️ VirusTotal v3:</span>
+                        <span class="badge badge-UNKNOWN" id="strip-vt-status">Checking...</span>
+                        <span style="color:var(--border-light);">|</span>
+                        <span>⚡ AbuseIPDB v2:</span>
+                        <span class="badge badge-UNKNOWN" id="strip-abuse-status">Checking...</span>
+                    </div>
+                    <div style="font-size:0.73rem; color:var(--text-muted);" id="strip-config-hint">
+                        Reads VIRUSTOTAL_API_KEY &amp; ABUSEIPDB_API_KEY from environment / .env
+                    </div>
+                </div>
             </div>
 
             <!-- IP Validation Summary Box -->
@@ -1284,39 +1334,45 @@
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
                     <div>
                         <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em;">
-                            HYBRID THREAT CLASSIFICATION STATUS
+                            HYBRID THREAT CLASSIFICATION
                         </div>
-                        <div style="display:flex; align-items:center; gap:12px; margin-top:4px;">
+                        <div style="display:flex; align-items:center; gap:12px; margin-top:4px; flex-wrap:wrap;">
                             <span id="hybrid-status-badge" class="badge badge-UNKNOWN" style="font-size:0.95rem; padding:6px 14px;">UNKNOWN</span>
-                            <span style="font-size:0.85rem; color:var(--text-secondary);" id="hybrid-checked-time">Checked: Just now</span>
+                            <span style="font-size:0.82rem; color:var(--text-secondary);" id="hybrid-checked-time">Last Checked: --</span>
                         </div>
                     </div>
 
-                    <div style="min-width:180px;">
-                        <div style="display:flex; justify-content:space-between; font-size:0.78rem; font-weight:700;">
+                    <div style="min-width:210px;">
+                        <div style="display:flex; justify-content:space-between; gap:12px; font-size:0.78rem; font-weight:700;">
                             <span>COMPOSITE RISK SCORE</span>
-                            <span id="hybrid-risk-val" class="mono">0.0 / 100</span>
+                            <span id="hybrid-risk-val" class="mono">N/A</span>
                         </div>
                         <div class="conf-meter" style="height:8px; margin-top:4px;">
-                            <div id="hybrid-risk-meter" class="conf-fill" style="width:0%; background:#10b981;"></div>
+                            <div id="hybrid-risk-meter" class="conf-fill" style="width:0%; background:#64748b;"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Threat Trigger Reasons List -->
-                <div>
-                    <div style="font-size:0.78rem; font-weight:700; color:var(--text-secondary); margin-bottom:6px;">
-                        CORRELATED THREAT SIGNALS &amp; REASONS:
+                <!-- Evidence Summary -->
+                <div style="background:rgba(15, 23, 42, 0.55); border:1px solid var(--border-color); border-radius:8px; padding:12px 14px;">
+                    <div style="font-size:0.74rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">
+                        EVIDENCE SUMMARY
+                    </div>
+                    <div id="hybrid-evidence-summary" style="font-size:0.83rem; color:var(--text-primary); line-height:1.45;">
+                        --
+                    </div>
+                    <div style="font-size:0.74rem; font-weight:700; color:var(--text-secondary); margin-top:10px; margin-bottom:4px;">
+                        SUPPORTING SIGNALS &amp; DIAGNOSTICS:
                     </div>
                     <ul id="hybrid-reasons-list" style="padding-left:18px; font-size:0.8rem; color:#f1f5f9; display:flex; flex-direction:column; gap:4px;">
                         <li>No threat triggers flagged.</li>
                     </ul>
                 </div>
 
-                <!-- Containment Action Recommendation -->
+                <!-- Recommended Action -->
                 <div id="containment-box" class="containment-action-box">
                     <div style="font-size:0.78rem; font-weight:800; text-transform:uppercase; letter-spacing:0.04em;" id="containment-title">
-                        RECOMMENDED CONTAINMENT ACTION
+                        RECOMMENDED ACTION
                     </div>
                     <div style="font-size:0.83rem; line-height:1.45;" id="containment-desc">
                         No immediate containment required.
@@ -1332,20 +1388,22 @@
                                 <span style="font-size:1.1rem;">🛡️</span>
                                 <div>
                                     <strong style="font-size:0.88rem;">VirusTotal API v3</strong>
-                                    <div style="font-size:0.7rem; color:var(--text-muted);">Antivirus Engines &amp; Network CIDR</div>
+                                    <div style="font-size:0.7rem; color:var(--text-muted);">Antivirus Engines, ASN &amp; Network CIDR</div>
                                 </div>
                             </div>
-                            <span class="badge" id="vt-api-status-badge">API READY</span>
+                            <span class="badge badge-UNKNOWN" id="vt-api-status-badge">CHECKING</span>
                         </div>
 
+                        <div id="vt-error-banner" class="telemetry-error-banner"></div>
+
                         <div style="display:flex; align-items:baseline; gap:10px; margin:4px 0;">
-                            <span style="font-size:1.6rem; font-weight:800;" id="vt-ratio-display">0 / 0</span>
-                            <span style="font-size:0.75rem; color:var(--text-secondary);">engines flagged malicious</span>
+                            <span style="font-size:1.6rem; font-weight:800;" id="vt-ratio-display">N/A</span>
+                            <span style="font-size:0.75rem; color:var(--text-secondary);" id="vt-ratio-caption">engines flagged malicious</span>
                         </div>
 
                         <div class="telemetry-stat-row">
-                            <span style="color:var(--text-muted);">Detections Breakdown:</span>
-                            <span id="vt-breakdown-text" style="font-weight:600;">0 Malicious • 0 Suspicious</span>
+                            <span style="color:var(--text-muted);">Engine Verdicts:</span>
+                            <span id="vt-breakdown-text" style="font-weight:600;">0 Malicious • 0 Suspicious • 0 Harmless • 0 Undetected</span>
                         </div>
                         <div class="telemetry-stat-row">
                             <span style="color:var(--text-muted);">Country / Geolocation:</span>
@@ -1360,7 +1418,7 @@
                             <span id="vt-network-text" class="mono" style="font-weight:600;">--</span>
                         </div>
                         <div class="telemetry-stat-row">
-                            <span style="color:var(--text-muted);">Last Analysis Date:</span>
+                            <span style="color:var(--text-muted);">Last Analysis Timestamp:</span>
                             <span id="vt-last-date" style="font-weight:600;">--</span>
                         </div>
                     </div>
@@ -1371,21 +1429,27 @@
                             <div style="display:flex; align-items:center; gap:8px;">
                                 <span style="font-size:1.1rem;">⚡</span>
                                 <div>
-                                    <strong style="font-size:0.88rem;">AbuseIPDB API</strong>
+                                    <strong style="font-size:0.88rem;">AbuseIPDB API v2</strong>
                                     <div style="font-size:0.7rem; color:var(--text-muted);">Crowdsourced Threat Reports &amp; Abuse Score</div>
                                 </div>
                             </div>
-                            <span class="badge" id="abuse-api-status-badge">API READY</span>
+                            <span class="badge badge-UNKNOWN" id="abuse-api-status-badge">CHECKING</span>
                         </div>
 
+                        <div id="abuse-error-banner" class="telemetry-error-banner"></div>
+
                         <div style="display:flex; align-items:baseline; gap:10px; margin:4px 0;">
-                            <span style="font-size:1.6rem; font-weight:800;" id="abuse-score-display">0%</span>
+                            <span style="font-size:1.6rem; font-weight:800;" id="abuse-score-display">N/A</span>
                             <span style="font-size:0.75rem; color:var(--text-secondary);">Abuse Confidence Score</span>
                         </div>
 
                         <div class="telemetry-stat-row">
-                            <span style="color:var(--text-muted);">Total Incident Reports:</span>
-                            <span id="abuse-reports-text" style="font-weight:600;">0 reports</span>
+                            <span style="color:var(--text-muted);">Reports &amp; Reporters:</span>
+                            <span id="abuse-reports-text" style="font-weight:600;">0 reports • 0 distinct reporters</span>
+                        </div>
+                        <div class="telemetry-stat-row">
+                            <span style="color:var(--text-muted);">Country:</span>
+                            <span id="abuse-country-text" style="font-weight:600;">Unknown</span>
                         </div>
                         <div class="telemetry-stat-row">
                             <span style="color:var(--text-muted);">ISP / Host Provider:</span>
@@ -1404,7 +1468,7 @@
                             <span id="abuse-tor-text" style="font-weight:600;">No</span>
                         </div>
                         <div class="telemetry-stat-row">
-                            <span style="color:var(--text-muted);">Last Reported:</span>
+                            <span style="color:var(--text-muted);">Last Reported Date:</span>
                             <span id="abuse-last-date" style="font-weight:600;">--</span>
                         </div>
                     </div>
@@ -2189,9 +2253,21 @@
                         </thead>
                         <tbody>
                             <tr>
+                                <td><span class="badge badge-LOW">GET</span></td>
+                                <td class="mono">/api/intel/status</td>
+                                <td>Returns VirusTotal &amp; AbuseIPDB configuration and connection status</td>
+                                <td>JSON</td>
+                            </tr>
+                            <tr>
                                 <td><span class="badge badge-CRITICAL">POST</span></td>
                                 <td class="mono">/api/intel/ip/check</td>
                                 <td>Checks IP reputation against VirusTotal v3 and AbuseIPDB</td>
+                                <td>JSON</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-CRITICAL">POST</span></td>
+                                <td class="mono">/api/intel/analyzer/ip</td>
+                                <td>Analyzes observed network session flows for a source IP via 71-feature SVM</td>
                                 <td>JSON</td>
                             </tr>
                             <tr>
@@ -2419,9 +2495,11 @@
             if (targetPane) targetPane.classList.add('active');
             if (targetBtn) targetBtn.classList.add('active');
 
-            // Trigger data refresh if entering history or system info
+            // Trigger data refresh if entering history or ip-checker
             if (tabId === 'tab-detection-history') {
                 loadHistoryData();
+            } else if (tabId === 'tab-ip-checker') {
+                loadIntelProviderStatus();
             }
 
             // Sync URL hash
@@ -2745,6 +2823,57 @@
         // ===============================================================
         // IP THREAT INTELLIGENCE ACTIONS
         // ===============================================================
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function getProviderBadgeClass(status, configured) {
+            if (!configured || status === 'NOT_CONFIGURED') return 'badge-MEDIUM';
+            if (status === 'SUCCESS' || status === 'NO_RECORD') return 'badge-SAFE';
+            if (status === 'CONFIGURED') return 'badge-LOW';
+            if (['RATE_LIMITED', 'TIMEOUT', 'NOT_APPLICABLE'].includes(status)) return 'badge-MEDIUM';
+            if (['UNAUTHORIZED', 'FORBIDDEN', 'SERVER_ERROR', 'CONNECTION_ERROR', 'INVALID_RESPONSE', 'ERROR'].includes(status)) return 'badge-CRITICAL';
+            return 'badge-UNKNOWN';
+        }
+
+        function updateConnectionStrip(vtState, abuseState) {
+            const vtEl = document.getElementById('strip-vt-status');
+            const abuseEl = document.getElementById('strip-abuse-status');
+            if (vtEl && vtState) {
+                const label = vtState.connection_status || (vtState.configured ? 'Configured' : 'Not Configured');
+                vtEl.innerText = label;
+                vtEl.className = `badge ${getProviderBadgeClass(vtState.status, vtState.configured)}`;
+            }
+            if (abuseEl && abuseState) {
+                const label = abuseState.connection_status || (abuseState.configured ? 'Configured' : 'Not Configured');
+                abuseEl.innerText = label;
+                abuseEl.className = `badge ${getProviderBadgeClass(abuseState.status, abuseState.configured)}`;
+            }
+        }
+
+        async function loadIntelProviderStatus() {
+            try {
+                const res = await fetch('/api/intel/status');
+                if (!res.ok) return;
+                const d = await res.json();
+                updateConnectionStrip(d.virustotal, d.abuseipdb);
+                const hintEl = document.getElementById('strip-config-hint');
+                if (hintEl) {
+                    const bothDown = !(d.virustotal && d.virustotal.configured) && !(d.abuseipdb && d.abuseipdb.configured);
+                    hintEl.innerText = bothDown
+                        ? 'Action needed: Set VIRUSTOTAL_API_KEY & ABUSEIPDB_API_KEY in Render Environment or local .env'
+                        : 'Live provider telemetry active (API keys stored server-side only)';
+                }
+            } catch (e) {
+                console.warn('Could not load threat intel status:', e);
+            }
+        }
+
         function quickFillIP(ip) {
             document.getElementById('target-ip-input').value = ip;
             runIPThreatCheck();
@@ -2786,78 +2915,150 @@
         }
 
         function renderIPThreatReport(data) {
+            const val = data.validation || {};
             // Validation Box
             const valBox = document.getElementById('ip-validation-box');
             valBox.style.display = 'block';
 
-            document.getElementById('val-ip-display').innerText = data.ip_address;
+            document.getElementById('val-ip-display').innerText = data.ip_address || '--';
             const vBadge = document.getElementById('val-ip-version-badge');
-            vBadge.innerText = `IPv${data.validation.version || 4}`;
-
             const sBadge = document.getElementById('val-ip-scope-badge');
-            sBadge.innerText = data.validation.is_public ? 'PUBLIC' : 'PRIVATE / RESERVED';
-            sBadge.className = data.validation.is_public ? 'badge badge-LOW' : 'badge badge-MEDIUM';
 
-            document.getElementById('val-ip-classification-text').innerText = data.validation.classification || 'Validated';
+            if (!val.is_valid) {
+                vBadge.innerText = 'INVALID';
+                vBadge.className = 'badge badge-CRITICAL';
+                sBadge.innerText = 'REJECTED';
+                sBadge.className = 'badge badge-CRITICAL';
+                document.getElementById('val-ip-classification-text').innerText = val.error || val.classification || 'Invalid IP address format.';
+            } else {
+                vBadge.innerText = `IPv${val.version || 4}`;
+                vBadge.className = 'badge';
+                sBadge.innerText = val.is_public ? 'PUBLIC' : (val.ip_type || 'PRIVATE / RESERVED');
+                sBadge.className = val.is_public ? 'badge badge-LOW' : 'badge badge-MEDIUM';
+                document.getElementById('val-ip-classification-text').innerText = val.message || val.classification || 'Validated';
+            }
 
-            // Hybrid Assessment
+            // Hybrid Assessment Card
             const hybridCard = document.getElementById('hybrid-threat-card');
             hybridCard.style.display = 'flex';
 
+            const hybrid = data.hybrid_assessment || {};
             const status = data.threat_status || 'UNKNOWN';
+            const displayLabel = hybrid.classification_label || (status === 'NO KNOWN THREATS' ? 'BENIGN / NO KNOWN THREATS' : status);
             hybridCard.className = `hybrid-assessment-card threat-${status.replace(/\s+/g, '-')}`;
 
             const statusBadge = document.getElementById('hybrid-status-badge');
-            statusBadge.innerText = status;
+            statusBadge.innerText = displayLabel;
             statusBadge.className = `badge badge-${status.replace(/\s+/g, '-')}`;
 
-            const riskScore = Number(data.risk_score) || 0.0;
-            document.getElementById('hybrid-risk-val').innerText = `${riskScore.toFixed(1)} / 100`;
+            // Non-misleading Composite Risk Score
+            const scoreAvailable = Boolean(data.risk_score_available) && data.risk_score !== null && data.risk_score !== undefined;
+            const riskValEl = document.getElementById('hybrid-risk-val');
             const riskMeter = document.getElementById('hybrid-risk-meter');
-            riskMeter.style.width = `${riskScore}%`;
-            riskMeter.style.background = riskScore >= 75 ? '#f43f5e' : (riskScore >= 40 ? '#f59e0b' : '#10b981');
 
-            document.getElementById('hybrid-checked-time').innerText = `Checked: ${data.checked_at || 'Just now'} ${data.cached ? '(from 24h cache)' : '(fresh query)'}`;
-
-            // Reasons
-            const reasonsUl = document.getElementById('hybrid-reasons-list');
-            const reasons = data.hybrid_assessment.reasons || [];
-            if (reasons.length > 0) {
-                reasonsUl.innerHTML = reasons.map(r => `<li>${r}</li>`).join('');
+            if (!scoreAvailable) {
+                riskValEl.innerText = 'N/A (No Actionable Intel)';
+                riskMeter.style.width = '0%';
+                riskMeter.style.background = '#64748b';
             } else {
-                reasonsUl.innerHTML = `<li>No malicious or suspicious threat triggers flagged.</li>`;
+                const riskScore = Number(data.risk_score) || 0.0;
+                riskValEl.innerText = `${riskScore.toFixed(1)} / 100`;
+                riskMeter.style.width = `${Math.min(100, Math.max(0, riskScore))}%`;
+                riskMeter.style.background =
+                    status === 'MALICIOUS' ? '#f43f5e' :
+                    (status === 'SUSPICIOUS' ? '#f59e0b' : '#10b981');
             }
 
-            // Containment
+            const ts = data.checked_at ? new Date(data.checked_at).toLocaleString() : 'Just now';
+            document.getElementById('hybrid-checked-time').innerText = `Last Checked: ${ts} ${data.cached ? '(from 24h cache)' : '(live check)'}`;
+
+            // Evidence summary & supporting signals
+            document.getElementById('hybrid-evidence-summary').innerText =
+                hybrid.evidence_summary || hybrid.assessment_summary || 'No intelligence evidence recorded.';
+
+            const reasonsUl = document.getElementById('hybrid-reasons-list');
+            const reasons = hybrid.reasons || [];
+            if (reasons.length > 0) {
+                reasonsUl.innerHTML = reasons.map(r => `<li>${escapeHtml(r)}</li>`).join('');
+            } else {
+                reasonsUl.innerHTML = `<li>No threat signals recorded.</li>`;
+            }
+
+            // Recommended action box
             const containmentBox = document.getElementById('containment-box');
-            const action = data.hybrid_assessment.recommended_action || "No action needed.";
+            const action = hybrid.recommended_action || "No action needed.";
             document.getElementById('containment-desc').innerText = action;
             if (status === "NO KNOWN THREATS") {
                 containmentBox.className = "containment-action-box clean";
+            } else if (status === "SUSPICIOUS") {
+                containmentBox.className = "containment-action-box suspicious";
+            } else if (status === "UNKNOWN") {
+                containmentBox.className = "containment-action-box unknown";
             } else {
                 containmentBox.className = "containment-action-box";
             }
 
             // VirusTotal Card
             const vt = data.virustotal || {};
-            document.getElementById('vt-api-status-badge').innerText = vt.configured ? "CONFIGURED" : "KEY UNCONFIGURED";
-            document.getElementById('vt-ratio-display').innerText = vt.detection_ratio || "0 / 0";
-            document.getElementById('vt-breakdown-text').innerText = `${vt.malicious || 0} Malicious • ${vt.suspicious || 0} Suspicious • ${vt.harmless || 0} Harmless`;
+            const vtBadge = document.getElementById('vt-api-status-badge');
+            const vtConnText = vt.connection_status || (vt.configured ? (vt.available ? "Connected" : vt.status) : "Not Configured");
+            vtBadge.innerText = String(vtConnText).toUpperCase();
+            vtBadge.className = `badge ${getProviderBadgeClass(vt.status, vt.configured)}`;
+
+            const vtErrBanner = document.getElementById('vt-error-banner');
+            if (vt.error) {
+                vtErrBanner.style.display = 'block';
+                vtErrBanner.innerText = `⚠️ ${vt.error}`;
+            } else if (vt.message) {
+                vtErrBanner.style.display = 'block';
+                vtErrBanner.innerText = `ℹ️ ${vt.message}`;
+            } else {
+                vtErrBanner.style.display = 'none';
+            }
+
+            document.getElementById('vt-ratio-display').innerText = vt.available ? (vt.detection_ratio || "0/0") : "N/A";
+            document.getElementById('vt-breakdown-text').innerText =
+                `${vt.malicious_count || 0} Malicious • ${vt.suspicious_count || 0} Suspicious • ${vt.harmless_count || 0} Harmless • ${vt.undetected_count || 0} Undetected (${vt.total_engines || 0} total)`;
             document.getElementById('vt-country-text').innerText = vt.country || "Unknown";
-            document.getElementById('vt-asn-text').innerText = vt.asn || vt.as_owner || "--";
-            document.getElementById('vt-network-text').innerText = vt.network || "--";
-            document.getElementById('vt-last-date').innerText = vt.last_analysis_date || "--";
+            const vtAsnParts = [vt.asn, vt.as_owner].filter(v => v && v !== "Unknown" && v !== "N/A");
+            document.getElementById('vt-asn-text').innerText = vtAsnParts.length > 0 ? vtAsnParts.join(" — ") : "Unknown";
+            document.getElementById('vt-network-text').innerText = vt.network || "Unknown";
+            document.getElementById('vt-last-date').innerText = vt.last_analysis_date || "N/A";
 
             // AbuseIPDB Card
             const abuse = data.abuseipdb || {};
-            document.getElementById('abuse-api-status-badge').innerText = abuse.configured ? "CONFIGURED" : "KEY UNCONFIGURED";
-            document.getElementById('abuse-score-display').innerText = `${abuse.abuse_confidence_score || 0}%`;
-            document.getElementById('abuse-reports-text').innerText = `${abuse.total_reports || 0} reports (${abuse.distinct_users || 0} distinct reporters)`;
+            const abuseBadge = document.getElementById('abuse-api-status-badge');
+            const abuseConnText = abuse.connection_status || (abuse.configured ? (abuse.available ? "Connected" : abuse.status) : "Not Configured");
+            abuseBadge.innerText = String(abuseConnText).toUpperCase();
+            abuseBadge.className = `badge ${getProviderBadgeClass(abuse.status, abuse.configured)}`;
+
+            const abuseErrBanner = document.getElementById('abuse-error-banner');
+            if (abuse.error) {
+                abuseErrBanner.style.display = 'block';
+                abuseErrBanner.innerText = `⚠️ ${abuse.error}`;
+            } else if (abuse.message) {
+                abuseErrBanner.style.display = 'block';
+                abuseErrBanner.innerText = `ℹ️ ${abuse.message}`;
+            } else {
+                abuseErrBanner.style.display = 'none';
+            }
+
+            document.getElementById('abuse-score-display').innerText = abuse.available ? `${abuse.abuse_confidence_score || 0}%` : "N/A";
+            const distinctCnt = abuse.num_distinct_users !== undefined ? abuse.num_distinct_users : (abuse.distinct_users || 0);
+            document.getElementById('abuse-reports-text').innerText = `${abuse.total_reports || 0} reports • ${distinctCnt} distinct reporters`;
+            document.getElementById('abuse-country-text').innerText =
+                (abuse.country_name && abuse.country_name !== "Unknown") ? `${abuse.country_name} (${abuse.country || ""})` : (abuse.country || "Unknown");
             document.getElementById('abuse-isp-text').innerText = abuse.isp || "Unknown";
-            document.getElementById('abuse-domain-text').innerText = abuse.domain || "--";
-            document.getElementById('abuse-usage-text').innerText = abuse.usage_type || "--";
+            document.getElementById('abuse-domain-text').innerText = abuse.domain || "Unknown";
+            document.getElementById('abuse-usage-text').innerText = abuse.usage_type || "Unknown";
             document.getElementById('abuse-tor-text').innerText = abuse.is_tor ? "YES (Tor Exit Node)" : "No";
-            document.getElementById('abuse-last-date').innerText = abuse.last_reported_at || "--";
+            document.getElementById('abuse-last-date').innerText = abuse.last_reported_at || "Never";
+
+            // Sync top provider connection strip
+            updateConnectionStrip(
+                data.api_status?.virustotal || vt,
+                data.api_status?.abuseipdb || abuse
+            );
         }
 
         // ===============================================================
@@ -3167,8 +3368,8 @@
                             <td class="mono"><strong>${item.ip_address}</strong></td>
                             <td><span class="badge">IPv${item.ip_version}</span></td>
                             <td><span class="badge ${item.is_public ? 'badge-LOW' : 'badge-MEDIUM'}">${item.is_public ? 'PUBLIC' : 'PRIVATE'}</span></td>
-                            <td><span class="badge badge-${item.threat_status.replace(/\s+/g, '-')}">${item.threat_status}</span></td>
-                            <td class="mono">${Number(item.risk_score).toFixed(1)}</td>
+                            <td><span class="badge badge-${item.threat_status.replace(/\s+/g, '-')}">${escapeHtml(item.threat_status)}</span></td>
+                            <td class="mono">${item.risk_score !== null && item.risk_score !== undefined ? Number(item.risk_score).toFixed(1) : 'N/A'}</td>
                             <td class="mono">${Number(item.abuse_confidence).toFixed(1)}%</td>
                             <td class="mono">${item.vt_detection_ratio}</td>
                             <td>${item.country} • ${item.isp}</td>
@@ -3331,6 +3532,7 @@
             initTimelineChart();
             initDoughnutChart();
             checkSimulatorHealth();
+            loadIntelProviderStatus();
             loadStats();
             loadTimeseries();
             loadAlerts();

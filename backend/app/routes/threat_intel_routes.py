@@ -22,7 +22,7 @@ from backend.app.schemas import (
     IPAttackAnalyzerRequest,
     IPAttackAnalyzerResponse
 )
-from backend.app.services.threat_intel import analyze_ip_threat
+from backend.app.services.threat_intel import analyze_ip_threat, get_threat_intel_status
 from backend.app.services.ip_flow_analyzer import (
     analyze_ip_network_attacks,
     get_observed_ips_list
@@ -32,6 +32,20 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/intel", tags=["Threat Intelligence & IP Reputation"])
 analyzer_router = APIRouter(prefix="/api/analyzer", tags=["IP Attack Analyzer"])
+
+
+@router.get(
+    "/status",
+    summary="Get Threat Intelligence Provider Configuration & Connection Status",
+    description="Returns sanitized configuration and connection state for VirusTotal API v3 and AbuseIPDB API v2 without exposing API keys."
+)
+def get_intel_providers_status():
+    """Returns safe status metadata for external threat intelligence integrations."""
+    try:
+        return get_threat_intel_status()
+    except Exception as e:
+        logger.error(f"Error reading threat intel provider status: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post(
@@ -55,39 +69,54 @@ async def check_ip_threat(payload: IPThreatLookupRequest):
     try:
         report = await analyze_ip_threat(raw_ip, force_refresh=payload.force_refresh)
 
-        # Extract values for database logging and client response
+        # Extract values safely for database logging and client response
         vt = report.get("virustotal") or {}
         abuse = report.get("abuseipdb") or {}
-        ip_version = report.get("ip_version") or 4
-        is_public = bool(report.get("is_public", False))
+        raw_val = report.get("validation") or {}
+
+        is_valid = bool(raw_val.get("is_valid", report.get("success", True)))
+        ip_version = int(raw_val.get("version") or report.get("ip_version") or 0)
+        is_public = bool(raw_val.get("is_public", report.get("is_public", False)))
+        is_private = bool(raw_val.get("is_private", report.get("is_private", False)))
+        ip_type = str(raw_val.get("ip_type") or report.get("ip_type") or ("PUBLIC" if is_public else "INVALID"))
+
         threat_status = report.get("threat_status", "UNKNOWN")
-        risk_score = float(report.get("risk_score", 0.0))
-        abuse_conf = float(abuse.get("abuse_confidence_score", 0.0))
-        vt_ratio = str(vt.get("detection_ratio", "0/0"))
-        total_reports = int(abuse.get("total_reports", 0))
-        country = str(report.get("country", "Unknown"))
-        isp = str(report.get("isp", "Unknown"))
-        asn = str(report.get("asn", "Unknown"))
-        reasons = report.get("reasons", [])
+        raw_risk = report.get("risk_score")
+        risk_score = float(raw_risk) if raw_risk is not None else None
+        risk_score_available = bool(report.get("risk_score_available", risk_score is not None))
+
+        abuse_conf = float(abuse.get("abuse_confidence_score") or 0.0)
+        vt_ratio = str(vt.get("detection_ratio") or "N/A")
+        total_reports = int(abuse.get("total_reports") or 0)
+        country = str(report.get("country") or "Unknown")
+        isp = str(report.get("isp") or "Unknown")
+        asn = str(report.get("asn") or "Unknown")
+        reasons = report.get("reasons") or []
 
         val = {
-            "version": ip_version,
-            "ip_type": report.get("ip_type", "PUBLIC"),
+            "version": ip_version if is_valid else None,
+            "ip_type": ip_type,
             "is_public": is_public,
-            "is_private": bool(report.get("is_private", not is_public)),
-            "is_valid": report.get("success", True),
-            "classification": f"IPv{ip_version} {report.get('ip_type', 'PUBLIC')}"
+            "is_private": is_private,
+            "is_valid": is_valid,
+            "error": raw_val.get("error") or report.get("error"),
+            "message": raw_val.get("message") or report.get("message") or "",
+            "classification": f"IPv{ip_version} {ip_type}" if is_valid else f"INVALID ({raw_val.get('error') or 'Malformed IP'})"
         }
 
         hybrid = {
             "status": threat_status,
+            "classification_label": report.get("classification_label", "BENIGN / NO KNOWN THREATS" if threat_status == "NO KNOWN THREATS" else threat_status),
             "risk_score": risk_score,
-            "risk_level": report.get("risk_level", "INFO"),
+            "risk_score_available": risk_score_available,
+            "risk_level": report.get("risk_level", "UNKNOWN"),
             "reasons": reasons,
-            "recommended_action": report.get("assessment_summary", "No action required.")
+            "evidence_summary": report.get("evidence_summary") or "; ".join(reasons),
+            "assessment_summary": report.get("assessment_summary") or "",
+            "recommended_action": report.get("recommended_action") or report.get("assessment_summary") or "No action required."
         }
 
-        # Persist to database
+        # Persist valid lookups (avoid polluting audit log if input itself was unparseable junk, unless desired)
         database.save_ip_threat_lookup(
             ip_address=report.get("ip_address", raw_ip),
             ip_version=ip_version,
@@ -116,7 +145,9 @@ async def check_ip_threat(payload: IPThreatLookupRequest):
             hybrid_assessment=hybrid,
             threat_status=threat_status,
             risk_score=risk_score,
-            cached=report.get("cached", False),
+            risk_score_available=risk_score_available,
+            api_status=report.get("api_status") or get_threat_intel_status(),
+            cached=bool(report.get("cached", False)),
             checked_at=report.get("lookup_timestamp", "")
         )
     except Exception as e:

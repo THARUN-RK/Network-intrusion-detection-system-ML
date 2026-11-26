@@ -19,7 +19,7 @@ if str(PROJECT_ROOT) not in sys.path:
 import config
 import database
 import predict
-from backend.app.services.threat_intel import analyze_ip_threat
+from backend.app.services.threat_intel import analyze_ip_threat, get_threat_intel_status
 from backend.app.services.ip_validator import validate_and_classify_ip
 from backend.app.services.ip_flow_analyzer import (
     analyze_ip_network_attacks,
@@ -171,6 +171,18 @@ elif page == "IP Reputation Checker":
         "Private RFC 1918 addresses and loopbacks are classified safely without external exposure."
     )
 
+    # Connection Status Summary Bar
+    provider_status = get_threat_intel_status()
+    vt_state = provider_status.get("virustotal", {})
+    abuse_state = provider_status.get("abuseipdb", {})
+    cs1, cs2 = st.columns(2)
+    with cs1:
+        vt_conn = vt_state.get("connection_status", "Unknown")
+        st.caption(f"🛡️ **VirusTotal API v3 Status:** `{vt_conn}`")
+    with cs2:
+        ab_conn = abuse_state.get("connection_status", "Unknown")
+        st.caption(f"⚡ **AbuseIPDB API v2 Status:** `{ab_conn}`")
+
     c_input, c_btn = st.columns([4, 1])
     with c_input:
         target_ip = st.text_input("Enter Target IPv4 or IPv6 Address", value="185.220.101.1", help="e.g. 8.8.8.8, 1.1.1.1, 185.220.101.1, 45.155.205.233")
@@ -181,8 +193,8 @@ elif page == "IP Reputation Checker":
 
     st.caption("Quick Targets: 8.8.8.8 (Google DNS) | 1.1.1.1 (Cloudflare) | 185.220.101.1 (Tor Exit Node) | 45.155.205.233 (Scanner) | 192.168.1.1 (RFC 1918)")
 
-    if check_btn or target_ip:
-        with st.spinner(f"Querying threat intelligence engines for {target_ip}..."):
+    if check_btn or target_ip.strip():
+        with st.spinner(f"Querying threat intelligence engines for {target_ip.strip()}..."):
             try:
                 report = run_async_coro(analyze_ip_threat(target_ip.strip(), force_refresh=force_refresh))
             except Exception as e:
@@ -190,17 +202,27 @@ elif page == "IP Reputation Checker":
                 report = None
 
         if report:
-            val = validate_and_classify_ip(target_ip.strip())
+            val = report.get("validation") or validate_and_classify_ip(target_ip.strip())
             st.markdown("---")
             st.markdown(f"### Assessment for `{report.get('ip_address', target_ip)}`")
 
+            if not val.get("is_valid", True):
+                st.error(f"Invalid IP Address: {val.get('error', 'Malformed IP address.')}")
+
             col_v1, col_v2, col_v3, col_v4 = st.columns(4)
-            col_v1.metric("IP Version", f"IPv{report.get('ip_version', 4)}")
-            col_v2.metric("Scope", "PUBLIC" if report.get("is_public") else "PRIVATE / RESERVED")
+            col_v1.metric("IP Version", f"IPv{val.get('version')}" if val.get("is_valid") else "INVALID")
+            col_v2.metric("Scope", "PUBLIC" if report.get("is_public") else val.get("ip_type", "NON-PUBLIC"))
             col_v3.metric("Country", report.get("country", "Unknown"))
-            col_v4.metric("Risk Score", f"{report.get('risk_score', 0.0):.1f} / 100")
+
+            raw_risk = report.get("risk_score")
+            risk_available = bool(report.get("risk_score_available", raw_risk is not None))
+            risk_display = f"{float(raw_risk):.1f} / 100" if (risk_available and raw_risk is not None) else "N/A (Unavailable)"
+            col_v4.metric("Composite Risk Score", risk_display)
 
             status = report.get("threat_status", "UNKNOWN")
+            display_label = report.get("classification_label") or (
+                "BENIGN / NO KNOWN THREATS" if status == "NO KNOWN THREATS" else status
+            )
             status_colors = {
                 "NO KNOWN THREATS": "green",
                 "SUSPICIOUS": "orange",
@@ -208,32 +230,49 @@ elif page == "IP Reputation Checker":
                 "UNKNOWN": "gray"
             }
             st.markdown(
-                f"**Overall Assessment Status:** :{status_colors.get(status, 'gray')}[**{status}**] — "
-                f"*{report.get('assessment_summary', '')}*"
+                f"**Threat Classification:** :{status_colors.get(status, 'gray')}[**{display_label}**] &nbsp;|&nbsp; "
+                f"**Last Checked:** `{report.get('lookup_timestamp', 'N/A')}`"
             )
+            if report.get("evidence_summary"):
+                st.markdown(f"**Evidence Summary:** {report.get('evidence_summary')}")
+            if report.get("recommended_action"):
+                st.info(f"**Recommended Action:** {report.get('recommended_action')}")
 
             vt = report.get("virustotal") or {}
             abuse = report.get("abuseipdb") or {}
 
             col_vt, col_abuse = st.columns(2)
             with col_vt:
-                st.markdown("#### 🛡️ VirusTotal v3 Telemetry")
-                st.write(f"**Detection Ratio:** `{vt.get('detection_ratio', '0/0')}`")
-                st.write(f"**Malicious Votes:** {vt.get('malicious_votes', 0)}")
-                st.write(f"**Suspicious Votes:** {vt.get('suspicious_votes', 0)}")
-                st.write(f"**Harmless / Undetected:** {vt.get('harmless_votes', 0)} / {vt.get('undetected_votes', 0)}")
+                st.markdown(f"#### 🛡️ VirusTotal v3 (`{vt.get('connection_status', vt.get('status', 'UNKNOWN'))}`)")
+                if vt.get("error"):
+                    st.warning(vt["error"])
+                st.write(f"**Detection Ratio:** `{vt.get('detection_ratio', 'N/A') if vt.get('available') else 'N/A'}`")
+                st.write(
+                    f"**Malicious / Suspicious:** {vt.get('malicious_count', 0)} / {vt.get('suspicious_count', 0)}"
+                )
+                st.write(
+                    f"**Harmless / Undetected:** {vt.get('harmless_count', 0)} / {vt.get('undetected_count', 0)} "
+                    f"(Total Engines: {vt.get('total_engines', 0)})"
+                )
+                st.write(f"**Country / ASN:** {vt.get('country', 'Unknown')} | `{vt.get('asn', 'Unknown')}` ({vt.get('as_owner', 'Unknown')})")
+                st.write(f"**Network CIDR:** `{vt.get('network', 'Unknown')}`")
+                st.write(f"**Last Analysis Date:** {vt.get('last_analysis_date', 'N/A')}")
 
             with col_abuse:
-                st.markdown("#### 🚨 AbuseIPDB Telemetry")
-                st.write(f"**Abuse Confidence Score:** `{abuse.get('abuse_confidence_score', 0)}%`")
-                st.write(f"**Total Reports:** {abuse.get('total_reports', 0)}")
-                st.write(f"**Distinct Reporters:** {abuse.get('num_distinct_users', 0)}")
-                st.write(f"**ISP:** {report.get('isp', 'Unknown')}")
+                st.markdown(f"#### 🚨 AbuseIPDB v2 (`{abuse.get('connection_status', abuse.get('status', 'UNKNOWN'))}`)")
+                if abuse.get("error"):
+                    st.warning(abuse["error"])
+                st.write(f"**Abuse Confidence Score:** `{abuse.get('abuse_confidence_score', 0)}%`" if abuse.get("available") else "**Abuse Confidence Score:** `N/A`")
+                st.write(f"**Total Reports / Distinct Reporters:** {abuse.get('total_reports', 0)} / {abuse.get('num_distinct_users', 0)}")
+                st.write(f"**Country:** {abuse.get('country_name', abuse.get('country', 'Unknown'))}")
+                st.write(f"**ISP / Domain:** {abuse.get('isp', 'Unknown')} | `{abuse.get('domain', 'Unknown')}`")
+                st.write(f"**Usage Type:** {abuse.get('usage_type', 'Unknown')}")
                 st.write(f"**Tor Exit Node:** {'Yes' if abuse.get('is_tor') else 'No'}")
+                st.write(f"**Last Reported Date:** {abuse.get('last_reported_at', 'Never')}")
 
             reasons = report.get("reasons", [])
             if reasons:
-                st.markdown("#### ⚠️ Identified Risk Indicators")
+                st.markdown("#### 📋 Detailed Threat Signals & Diagnostics")
                 for r in reasons:
                     st.warning(r)
 
