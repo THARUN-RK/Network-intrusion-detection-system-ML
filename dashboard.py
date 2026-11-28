@@ -468,11 +468,24 @@ elif page == "Model Evaluation":
         "Scientific validation results for the Support Vector Machine trained on the benchmark CIC-IDS2017 dataset."
     )
 
-    c1, c2, c3, c4 = st.columns(4)
+    report_json = PROJECT_ROOT / "reports" / "evaluation_report.json"
+    eval_acc = 98.40
+    if report_json.exists():
+        try:
+            with open(report_json, "r", encoding="utf-8") as f:
+                rep = json.load(f)
+                if rep.get("accuracy") is not None:
+                    eval_acc = round(float(rep["accuracy"]) * 100.0, 2)
+        except Exception:
+            pass
+    eval_err = round(100.0 - eval_acc, 2)
+
+    c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Algorithm", "Multiclass RBF SVM")
     c2.metric("Feature Dimensions", "71 Statistical Descriptors")
     c3.metric("Benchmark Dataset", "CIC-IDS2017")
-    c4.metric("Evaluation Accuracy", "97.8%")
+    c4.metric("Evaluation Accuracy", f"{eval_acc:.2f}%")
+    c5.metric("Error Percentage", f"{eval_err:.2f}%")
 
     st.markdown("### 📊 Day-Wise Temporal Generalization")
     img_path = PROJECT_ROOT / "reports" / "day_wise_evaluation.png"

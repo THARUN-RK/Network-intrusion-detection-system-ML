@@ -131,6 +131,8 @@ def get_model_evaluation_metrics():
 
     predictor = predict.get_predictor()
     meta = predictor.metadata
+    accuracy = metrics_data.get("accuracy")
+    error_percentage = round((1.0 - float(accuracy)) * 100.0, 2) if accuracy is not None else None
 
     return {
         "available": True,
@@ -139,7 +141,8 @@ def get_model_evaluation_metrics():
         "kernel": meta.get("kernel", "rbf"),
         "dataset": "CIC-IDS2017 Benchmark",
         "feature_count": meta.get("feature_count", len(predictor.expected_features)),
-        "accuracy": metrics_data.get("accuracy"),
+        "accuracy": accuracy,
+        "error_percentage": error_percentage,
         "macro_precision": metrics_data.get("macro_precision"),
         "macro_recall": metrics_data.get("macro_recall"),
         "macro_f1_score": metrics_data.get("macro_f1_score"),

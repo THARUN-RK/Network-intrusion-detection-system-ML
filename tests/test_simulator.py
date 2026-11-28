@@ -140,6 +140,8 @@ def test_model_metrics_endpoint():
     if res["available"]:
         assert "accuracy" in res
         assert res["accuracy"] >= 0.90
+        assert "error_percentage" in res
+        assert res["error_percentage"] == round((1.0 - float(res["accuracy"])) * 100.0, 2)
         assert "Support Vector Machine" in res["model_type"]
         assert res["kernel"] == "rbf"
         assert res["feature_count"] == 71

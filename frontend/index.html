@@ -1778,24 +1778,35 @@
             <!-- Architectural Specs -->
             <div class="metrics-grid">
                 <div class="metric-card">
-                    <div class="metric-title">Overall Accuracy</div>
-                    <div class="metric-value" style="color:#38bdf8;">97.4%</div>
+                    <div class="metric-title">
+                        <span>Overall Accuracy</span>
+                        <span class="tooltip-trigger" data-tooltip="Percentage of held-out test flows classified correctly.">i</span>
+                    </div>
+                    <div class="metric-value" id="eval-accuracy" style="color:#38bdf8;">98.4%</div>
                     <div class="metric-sub">Stratified test evaluation</div>
                 </div>
                 <div class="metric-card">
+                    <div class="metric-title">
+                        <span>Error Percentage</span>
+                        <span class="tooltip-trigger" data-tooltip="Overall misclassification rate (100% - Accuracy) on held-out test flows.">i</span>
+                    </div>
+                    <div class="metric-value" id="eval-error-pct" style="color:#f87171;">1.60%</div>
+                    <div class="metric-sub">Misclassification error rate</div>
+                </div>
+                <div class="metric-card">
                     <div class="metric-title">Macro F1-Score</div>
-                    <div class="metric-value" style="color:#34d399;">94.8%</div>
+                    <div class="metric-value" id="eval-macro-f1" style="color:#34d399;">97.6%</div>
                     <div class="metric-sub">Balanced across rare classes</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-title">Weighted Precision</div>
-                    <div class="metric-value" style="color:#a78bfa;">97.6%</div>
+                    <div class="metric-title">Macro Precision</div>
+                    <div class="metric-value" id="eval-macro-prec" style="color:#a78bfa;">96.2%</div>
                     <div class="metric-sub">Low false positive rate</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-title">Per-Flow Inference</div>
-                    <div class="metric-value" style="color:#f59e0b;">&lt;0.3 ms</div>
-                    <div class="metric-sub">Intel Core i3 single thread</div>
+                    <div class="metric-value" id="eval-latency" style="color:#f59e0b;">0.29 ms</div>
+                    <div class="metric-sub">Real-time SVM prediction</div>
                 </div>
             </div>
 
@@ -3528,11 +3539,44 @@
             }
         }
 
+        async function loadModelEvaluationMetrics() {
+            try {
+                const res = await fetch('/api/model-metrics');
+                if (!res.ok) return;
+                const d = await res.json();
+                if (!d.available) return;
+
+                if (typeof d.accuracy === 'number') {
+                    const accElem = document.getElementById('eval-accuracy');
+                    if (accElem) accElem.innerText = `${(d.accuracy * 100).toFixed(2)}%`;
+                }
+                if (typeof d.error_percentage === 'number') {
+                    const errElem = document.getElementById('eval-error-pct');
+                    if (errElem) errElem.innerText = `${d.error_percentage.toFixed(2)}%`;
+                }
+                if (typeof d.macro_f1_score === 'number') {
+                    const f1Elem = document.getElementById('eval-macro-f1');
+                    if (f1Elem) f1Elem.innerText = `${(d.macro_f1_score * 100).toFixed(2)}%`;
+                }
+                if (typeof d.macro_precision === 'number') {
+                    const precElem = document.getElementById('eval-macro-prec');
+                    if (precElem) precElem.innerText = `${(d.macro_precision * 100).toFixed(2)}%`;
+                }
+                if (typeof d.prediction_latency_ms === 'number') {
+                    const latElem = document.getElementById('eval-latency');
+                    if (latElem) latElem.innerText = `${d.prediction_latency_ms.toFixed(2)} ms`;
+                }
+            } catch (e) {
+                console.warn("Model metrics fetch skipped:", e);
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             initTimelineChart();
             initDoughnutChart();
             checkSimulatorHealth();
             loadIntelProviderStatus();
+            loadModelEvaluationMetrics();
             loadStats();
             loadTimeseries();
             loadAlerts();
