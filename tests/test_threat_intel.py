@@ -217,6 +217,25 @@ def test_hybrid_risk_evaluation_clean():
     assert assessment["risk_score_available"] is True
 
 
+def test_hybrid_risk_evaluation_mobile_isp_single_stale_report():
+    val = validate_and_classify_ip("152.57.126.17")
+    vt = {"available": True, "status": "SUCCESS", "malicious_count": 0, "suspicious_count": 0, "total_engines": 92}
+    abuse = {
+        "available": True,
+        "status": "SUCCESS",
+        "abuse_confidence_score": 0,
+        "total_reports": 1,
+        "num_distinct_users": 0,
+        "usage_type": "Mobile ISP",
+        "is_tor": False,
+    }
+    assessment = evaluate_hybrid_threat_status(val, vt, abuse)
+    assert assessment["threat_status"] == THREAT_STATUS_NO_THREATS
+    assert assessment["risk_score"] == 0.0
+    assert assessment["risk_score_available"] is True
+    assert any("CGNAT" in r for r in assessment["reasons"])
+
+
 def test_hybrid_risk_evaluation_private_ip():
     val = validate_and_classify_ip("192.168.1.100")
     assessment = evaluate_hybrid_threat_status(val, {}, {})

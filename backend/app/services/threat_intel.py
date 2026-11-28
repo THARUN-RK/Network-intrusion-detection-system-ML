@@ -827,15 +827,17 @@ def evaluate_hybrid_threat_status(
         }
 
     # Rule B: SUSPICIOUS
-    if (15 <= abuse_score < 50) or (1 <= vt_malicious < 3) or (vt_suspicious >= 2) or (abuse_reports > 0):
+    # Require >= 3 abuse reports when abuse confidence is < 15% so 1-2 stale reports
+    # on shared Mobile ISP / CGNAT IPs with 0% confidence do not trigger false alarms.
+    if (15 <= abuse_score < 50) or (1 <= vt_malicious < 3) or (vt_suspicious >= 2) or (abuse_reports >= 3):
         if abuse_usable and 15 <= abuse_score < 50:
             evidence.append(f"Moderate abuse confidence ({int(abuse_score)}%) on AbuseIPDB.")
         if vt_usable and 1 <= vt_malicious < 3:
             evidence.append(f"{vt_malicious}/{vt_total} security vendor(s) flagged this IP as malicious on VirusTotal.")
         if vt_usable and vt_suspicious >= 2:
             evidence.append(f"{vt_suspicious}/{vt_total} security vendors marked this IP as suspicious on VirusTotal.")
-        if abuse_usable and abuse_reports > 0 and abuse_score < 15:
-            evidence.append(f"Historical abuse activity recorded on AbuseIPDB ({abuse_reports} report(s)).")
+        if abuse_usable and abuse_reports >= 3 and abuse_score < 15:
+            evidence.append(f"Repeated abuse activity recorded on AbuseIPDB ({abuse_reports} report(s)).")
         if is_tor:
             evidence.append("Identified as a Tor Exit Node with observable traffic reports.")
 
@@ -887,6 +889,11 @@ def evaluate_hybrid_threat_status(
     if is_whitelisted:
         evidence.append("IP address appears on AbuseIPDB's global clean whitelist.")
     evidence.append(f"Verified clean across active intelligence feeds: {', '.join(feed_summaries)}.")
+    if abuse_usable and 0 < abuse_reports < 3 and abuse_score < 15:
+        evidence.append(
+            f"Note: {abuse_reports} low-confidence historical report(s) ({int(abuse_score)}% abuse confidence), "
+            "typical of shared ISP / mobile CGNAT rotation."
+        )
 
     reasons = evidence + partial_notes
     return {
