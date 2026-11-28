@@ -61,18 +61,27 @@ def load_environment(env_path: Path = None) -> bool:
 DOTENV_LOADED = load_environment()
 
 
+_ENV_VAR_ALIASES = {
+    "VIRUSTOTAL_API_KEY": ("VIRUSTOTAL_API_KEY", "VirusTotalAPI", "VIRUSTOTAL_API", "VT_API_KEY"),
+    "ABUSEIPDB_API_KEY": ("ABUSEIPDB_API_KEY", "AbuseIPDBAPI", "ABUSEIPDB_API", "ABUSE_IPDB_API_KEY"),
+}
+
+
 def get_api_key(env_var_name: str) -> str:
     """
-    Reads an API key dynamically from the environment, stripping whitespace/quotes
-    and rejecting empty or template placeholder strings. Never logs or returns secrets.
+    Reads an API key dynamically from the environment (including common fallback aliases),
+    stripping whitespace/quotes and rejecting empty or template placeholder strings.
+    Never logs or returns secrets.
     """
-    raw = os.getenv(env_var_name, "")
-    if not isinstance(raw, str):
-        return ""
-    cleaned = raw.strip().strip('"').strip("'").strip()
-    if cleaned.lower() in _PLACEHOLDER_KEYS:
-        return ""
-    return cleaned
+    candidates = _ENV_VAR_ALIASES.get(env_var_name, (env_var_name,))
+    for candidate in candidates:
+        raw = os.getenv(candidate, "")
+        if not isinstance(raw, str):
+            continue
+        cleaned = raw.strip().strip('"').strip("'").strip()
+        if cleaned and cleaned.lower() not in _PLACEHOLDER_KEYS:
+            return cleaned
+    return ""
 
 
 def get_threat_intel_config_status() -> Dict[str, Any]:
